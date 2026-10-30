@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: MyLiferando
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/myliferando
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # пока Hibernate сам создаёт и обновляет таблицы
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
