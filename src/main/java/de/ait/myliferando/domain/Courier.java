@@ -4,6 +4,7 @@ import de.ait.myliferando.domain.enums.Transport;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.Objects;
 
@@ -11,17 +12,18 @@ import java.util.Objects;
 @Table(name = "courier")
 public class Courier {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
     @Column(name = "name", nullable = false)
+    @Size(max = 255)
     @NotBlank
     private String name;
 
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone", nullable = false,length = 20)
+    @Size(max = 20)
     @NotBlank
     private String phone;
 

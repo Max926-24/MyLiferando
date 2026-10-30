@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.Objects;
 
@@ -18,15 +19,23 @@ public class Client {
     private Long id;
 
     @Column(name = "name", nullable = false)
+    @Size(max = 255)
     @NotBlank
     private String name;
 
-    @Email
+    @Column(name = "address", nullable = false)
+    @Size(max = 255)
+    @NotBlank
+    private String address;
+
     @Column(name = "email", nullable = false, unique = true)
+    @Size(max = 255)
+    @Email
     @NotBlank
     private String email;
 
-    @Column(name = "phone", nullable = false)
+    @Column(name = "phone", nullable = false, length = 20)
+    @Size(max = 20)
     @NotBlank
     private String phone;
 
@@ -78,6 +87,14 @@ public class Client {
         this.clientType = clientType;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -99,9 +116,11 @@ public class Client {
         return "Client{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", clientType=" + clientType +
                 '}';
     }
 }
+
