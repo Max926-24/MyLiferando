@@ -1,11 +1,9 @@
 package de.ait.myliferando.domain;
 
 import de.ait.myliferando.domain.enums.ClientType;
+import de.ait.myliferando.domain.enums.LegalType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.util.Objects;
 
@@ -43,6 +41,15 @@ public class Client {
     @Enumerated(EnumType.STRING)
     @NotNull
     private ClientType clientType;
+
+    @Column(name = "legal_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private LegalType legalType;
+
+    @Column(name = "inn", unique = true, length = 12)
+    @Pattern(regexp = "\\d{10}|\\d{12}")
+    private String inn;
 
     public Client() {
     }
@@ -95,6 +102,22 @@ public class Client {
         this.address = address;
     }
 
+    public LegalType getLegalType() {
+        return legalType;
+    }
+
+    public void setLegalType(LegalType legalType) {
+        this.legalType = legalType;
+    }
+
+    public String getInn() {
+        return inn;
+    }
+
+    public void setInn(String inn) {
+        this.inn = inn;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,6 +143,8 @@ public class Client {
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", clientType=" + clientType +
+                ", legalType=" + legalType +
+                ", inn='" + inn + '\'' +
                 '}';
     }
 }

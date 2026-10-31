@@ -1,5 +1,6 @@
 package de.ait.myliferando.domain;
 
+import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.Transport;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -22,13 +23,15 @@ public class Courier {
     @NotBlank
     private String name;
 
-    @Column(name = "phone", nullable = false,length = 20)
+    @Column(name = "phone", nullable = false, length = 20, unique = true)
     @Size(max = 20)
     @NotBlank
     private String phone;
 
-    @Column(name = "active", nullable = false)
-    private boolean active;
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    private CourierStatus status = CourierStatus.OFF_DUTY;
 
     @Column(name = "transport", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -62,12 +65,12 @@ public class Courier {
         this.phone = phone;
     }
 
-    public boolean isActive() {
-        return active;
+    public CourierStatus getStatus() {
+        return status;
     }
 
-    public void setActive(boolean active) {
-        this.active = active;
+    public void setStatus(CourierStatus status) {
+        this.status = status;
     }
 
     public Transport getTransport() {
@@ -100,7 +103,7 @@ public class Courier {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", phone='" + phone + '\'' +
-                ", active=" + active +
+                ", status=" + status +
                 ", transport=" + transport +
                 '}';
     }
