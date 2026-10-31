@@ -1,0 +1,28 @@
+---
+description: Стек, пакеты, без Lombok, equals/hashCode по id
+alwaysApply: true
+---
+
+# MyLiferando: Java и Spring
+
+Стек: Spring Boot 4, Java 17, PostgreSQL, JPA.
+
+- Сущности — в `domain/`, DTO — в `dto/`.
+- Lombok не использовать. Геттеры и сеттеры писать вручную.
+- В сущностях `equals`/`hashCode` только по `id`. Если `id == null`, объекты не равны (кроме ссылки на себя). `hashCode()` = `getClass().hashCode()`.
+
+```java
+@Override
+public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Client client)) return false;
+    return id != null && Objects.equals(id, client.id);
+}
+
+@Override
+public int hashCode() {
+    return getClass().hashCode();
+}
+```
+
+Отвечать по-русски. Объяснять решения, а не только давать готовый код.

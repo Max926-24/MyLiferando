@@ -1,0 +1,42 @@
+---
+description: Предметная область доставки, сущности, статусы и правила их смены
+globs: src/main/java/de/ait/myliferando/**
+alwaysApply: false
+---
+
+# Предметная область
+
+Сервис доставки (как Lieferando). Проект для России.
+
+## Сущности
+
+- `Client` — заведение-отправитель (ресторан, магазин, аптека), а не конечный покупатель.
+  - `clientType` — чем занимается (`ClientType`: RESTAURANT, SHOP, ...).
+  - `legalType` — кто по закону (`LegalType`: LEGAL_ENTITY, INDIVIDUAL_ENTREPRENEUR, INDIVIDUAL).
+  - `inn` — ИНН, уникален. У юрлица 10 цифр, у ИП 12, у физлица необязателен (может быть null).
+  - СНИЛС не используем: он бывает только у физлиц.
+  - `address` — адрес, откуда курьер забирает заказ.
+- `Courier` — курьер. `phone` уникален. `status` (`CourierStatus`): OFF_DUTY, AVAILABLE, BUSY.
+- `Order` — заказ, таблица `orders` (`order` — зарезервированное слово в SQL).
+  - `client` обязателен, `courier` равен null, пока курьер не назначен.
+  - Получатель — `recipientName` и `recipientPhone`, адрес — `deliveryAddress`.
+  - `createdAt` и `deliveredAt` ставит система, не пользователь.
+
+## Смена статусов (проверять в сервисе)
+
+| Действие | Заказ | Курьер |
+|---|---|---|
+| начал смену | — | OFF_DUTY → AVAILABLE |
+| назначен на заказ | CREATED → ASSIGNED | AVAILABLE → BUSY |
+| забрал заказ | ASSIGNED → PICKED_UP | — |
+| доставил | PICKED_UP → DELIVERED, ставится `deliveredAt` | BUSY → AVAILABLE |
+| отмена | любой, кроме DELIVERED → CANCELLED | BUSY → AVAILABLE, если был назначен |
+| закончил смену | — | AVAILABLE → OFF_DUTY |
+
+- Курьер везёт не больше одного заказа одновременно. Назначать можно только курьера в статусе AVAILABLE.
+- Методы, которые меняют несколько сущностей (например, заказ и курьера), помечать `@Transactional`.
+
+## Enum'ы
+
+- Константы на английском, в базе хранятся через `@Enumerated(EnumType.STRING)`.
+- Русское название для пользователя — поле `displayName` с геттером (как в `LegalType`, `CourierStatus`).

@@ -1,0 +1,29 @@
+---
+description: Правила для сущностей, репозиториев и DTO
+globs: src/main/java/de/ait/myliferando/domain/**,src/main/java/de/ait/myliferando/repository/**,src/main/java/de/ait/myliferando/dto/**
+alwaysApply: false
+---
+
+# Сущности (`domain/`)
+
+- Каждое поле: `@Column(name = "snake_case", ...)` + валидация (`@NotBlank`, `@NotNull`, `@Size`).
+- У строк `@Size(max = ...)` совпадает с длиной колонки (`length`, по умолчанию 255). Телефоны — 20.
+- Связи `@ManyToOne(fetch = FetchType.LAZY)` + `@JoinColumn(name = "..._id")`.
+- В `toString` не выводить LAZY-связи (риск `LazyInitializationException`).
+- Порядок в классе: поля → пустой конструктор → геттеры/сеттеры в порядке полей → equals/hashCode → toString.
+
+# Репозитории (`repository/`)
+
+- Интерфейс `extends JpaRepository<Entity, Long>`, без `@Repository`.
+- Методы строятся из имени (`findBy...`, `existsBy...`). Имена полей пишутся точно как в классе (`createdAt`, а не `created`).
+- Уникальное поле → `Optional<T>`, неуникальное → `List<T>`.
+- Перед созданием проверять уникальность через `existsBy...`, чтобы вернуть понятную ошибку, а не 500 от базы.
+- Не добавлять методы, которые пока не использует ни один сервис.
+
+# DTO (`dto/<сущность>/`)
+
+- Request — что приходит от пользователя, с валидацией: `ClientCreateRequest`.
+- Response — что отдаём наружу, без валидации: `ClientResponse`. Содержит `id`, собирается статическим методом `from(Entity)`.
+- В Request нет полей, которые задаёт система: `id`, `status`, `createdAt`, `deliveredAt`, `courier`.
+- В Order-запросе связи передаются по id (`clientId`), а не объектом.
+- Сущности никогда не возвращаются из контроллера напрямую.
