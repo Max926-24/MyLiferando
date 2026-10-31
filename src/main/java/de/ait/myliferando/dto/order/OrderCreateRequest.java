@@ -21,7 +21,7 @@ public class OrderCreateRequest {
     private String recipientName;
 
     @NotBlank
-    @Size(max = 255)
+    @Size(max = 20)
     private String recipientPhone;
 
     public OrderCreateRequest() {
