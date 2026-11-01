@@ -4,12 +4,13 @@
 
 Учебный проект на Spring Boot. Рассчитан на работу в России: клиенты идентифицируются по ИНН.
 
-> **Статус:** в разработке. Готовы сущности и репозитории, сейчас пишутся DTO. Сервисов и REST API пока нет.
+> **Статус:** в разработке. Готовы сущности, репозитории, DTO и мапперы, дальше сервисы. REST API пока нет.
 
 ## Стек
 
 - Java 17
 - Spring Boot 4 (Web MVC, Data JPA, Validation)
+- MapStruct (преобразование сущностей в DTO и обратно)
 - PostgreSQL 16 в Docker
 - Maven (через `mvnw`, ставить Maven не нужно)
 
@@ -107,7 +108,8 @@ src/main/java/de/ait/myliferando/
 ├── domain/          сущности JPA: Client, Courier, Order
 │   └── enums/       ClientType, LegalType, CourierStatus, OrderStatus, Transport
 ├── repository/      репозитории Spring Data JPA
-└── dto/             объекты запросов и ответов API (в работе)
+└── dto/             объекты запросов и ответов API: client/, courier/, order/
+    └── mapping/     мапперы MapStruct: ClientMapper, CourierMapper, OrderMapper
 ```
 
 ## Планы
@@ -115,6 +117,7 @@ src/main/java/de/ait/myliferando/
 - [x] Сущности и связи
 - [x] Репозитории
 - [x] DTO запросов и ответов
+- [x] Мапперы (MapStruct)
 - [ ] Сервисы с правилами смены статусов
 - [ ] REST-контроллеры
 - [ ] Обработка ошибок (400, 404, 409)
