@@ -5,6 +5,7 @@ import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
 import de.ait.myliferando.dto.mapping.CourierMapper;
+import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
@@ -26,6 +27,10 @@ public class CourierServiceImpl implements CourierService {
 
     @Override
     public CourierResponse save(CourierCreateRequest request) {
+        if (repository.existsByPhone(request.getPhone())) {
+            throw new AlreadyExistsException("Courier with phone number " + request.getPhone() +
+                    " already exists");
+        }
         Courier entity = mapper.mapDtoToEntity(request);
         repository.save(entity);
         return mapper.mapEntityToDto(entity);
