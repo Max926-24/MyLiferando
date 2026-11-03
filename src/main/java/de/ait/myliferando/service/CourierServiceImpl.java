@@ -7,6 +7,7 @@ import de.ait.myliferando.dto.courier.CourierResponse;
 import de.ait.myliferando.dto.mapping.CourierMapper;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
+import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,9 @@ public class CourierServiceImpl implements CourierService {
     public CourierResponse startShift(Long id) {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
+        if (courier.getStatus() != CourierStatus.OFF_DUTY) {
+            throw new InvalidStatusException("Courier " + id + " is already on shift");
+        }
         courier.setStatus(CourierStatus.AVAILABLE);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
@@ -57,9 +61,12 @@ public class CourierServiceImpl implements CourierService {
     public CourierResponse endShift(Long id) {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
+        if (courier.getStatus() != CourierStatus.AVAILABLE) {
+            throw new InvalidStatusException("Courier " + id +
+                    " cannot end shift in status " + courier.getStatus());
+        }
         courier.setStatus(CourierStatus.OFF_DUTY);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
-
     }
 }
