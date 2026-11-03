@@ -8,6 +8,7 @@ import de.ait.myliferando.domain.enums.OrderStatus;
 import de.ait.myliferando.dto.mapping.OrderMapper;
 import de.ait.myliferando.dto.order.OrderCreateRequest;
 import de.ait.myliferando.dto.order.OrderResponse;
+import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.OrderRepository;
@@ -38,7 +39,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse create(OrderCreateRequest request) {
-        Client client = clientRepository.findById(request.getClientId()).orElseThrow();
+        Client client = clientRepository.findById(request.getClientId()).orElseThrow(() ->
+                new EntityNotFoundException(Client.class, request.getClientId()));
         Order entity = mapper.mapDtoToEntity(request);
         entity.setClient(client);
         orderRepository.save(entity);
@@ -56,8 +58,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse assignCourier(Long orderId, Long courierId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
-        Courier courier = courierRepository.findById(courierId).orElseThrow();
+        Order order = orderRepository.findById(orderId).orElseThrow(()
+                -> new EntityNotFoundException(Order.class, orderId));
+        Courier courier = courierRepository.findById(courierId).orElseThrow(()
+                -> new EntityNotFoundException(Courier.class, courierId));
         order.setCourier(courier);
         order.setStatus(OrderStatus.ASSIGNED);
         courier.setStatus(CourierStatus.BUSY);
@@ -69,7 +73,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse pickUp(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+        Order order = orderRepository.findById(orderId).orElseThrow(()
+                -> new EntityNotFoundException(Order.class, orderId));
         order.setStatus(OrderStatus.PICKED_UP);
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);
@@ -78,7 +83,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse deliver(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+        Order order = orderRepository.findById(orderId).orElseThrow(()
+                -> new EntityNotFoundException(Order.class, orderId));
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         Courier courier = order.getCourier();
@@ -91,7 +97,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse cancel(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+        Order order = orderRepository.findById(orderId).orElseThrow(()
+                -> new EntityNotFoundException(Order.class, orderId));
         order.setStatus(OrderStatus.CANCELLED);
         Courier courier = order.getCourier();
         if (courier != null) {

@@ -5,6 +5,7 @@ import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
 import de.ait.myliferando.dto.mapping.CourierMapper;
+import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,8 @@ public class CourierServiceImpl implements CourierService {
 
     @Override
     public CourierResponse startShift(Long id) {
-        Courier courier = repository.findById(id).orElseThrow();
+        Courier courier = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Courier.class, id));
         courier.setStatus(CourierStatus.AVAILABLE);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
@@ -48,7 +50,8 @@ public class CourierServiceImpl implements CourierService {
 
     @Override
     public CourierResponse endShift(Long id) {
-        Courier courier = repository.findById(id).orElseThrow();
+        Courier courier = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Courier.class, id));
         courier.setStatus(CourierStatus.OFF_DUTY);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
