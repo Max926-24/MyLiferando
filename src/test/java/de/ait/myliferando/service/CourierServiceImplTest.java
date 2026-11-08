@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 class CourierServiceImplTest {
@@ -44,6 +44,7 @@ class CourierServiceImplTest {
 
         CourierResponse result = service.startShift(1L);
         assertThat(result.getStatus()).isEqualTo(CourierStatus.AVAILABLE);
+        verify(repository).save(courier);
 
     }
 
@@ -58,6 +59,7 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.startShift(1L))
                 .isInstanceOf(InvalidStatusException.class);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -80,6 +82,7 @@ class CourierServiceImplTest {
 
         CourierResponse result = service.endShift(1L);
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
+        verify(repository).save(courier);
     }
 
     @Test
@@ -93,6 +96,7 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.endShift(1L))
                 .isInstanceOf(InvalidStatusException.class);
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -114,6 +118,7 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.save(request))
                 .isInstanceOf(AlreadyExistsException.class);
+        verify(repository, never()).save(any());
 
     }
 
@@ -131,7 +136,7 @@ class CourierServiceImplTest {
         assertThat(result.getName()).isEqualTo("Ivan");
         assertThat(result.getPhone()).isEqualTo(phone);
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
-
+        verify(repository).save(any());
 
     }
 }
