@@ -66,5 +66,41 @@ class CourierServiceImplTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
+    @Test
+    void endShift_whenAvailable_becomesOffDuty() {
+
+        Courier courier = new Courier();
+        courier.setId(1L);
+        courier.setStatus(CourierStatus.AVAILABLE);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(courier));
+
+        CourierResponse result = service.endShift(1L);
+        assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
+
+    }
+
+    @Test
+    void endShift_whenAlreadyBusy_throwsException() {
+
+        Courier courier = new Courier();
+        courier.setId(1L);
+        courier.setStatus(CourierStatus.BUSY);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(courier));
+
+        assertThatThrownBy(() -> service.endShift(1L))
+                .isInstanceOf(InvalidStatusException.class);
+    }
+
+    @Test
+    void endShift_whenCourierNotFound_throwsException() {
+
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.endShift(1L))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
 
 }
