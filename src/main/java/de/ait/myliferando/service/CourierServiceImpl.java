@@ -50,7 +50,7 @@ public class CourierServiceImpl implements CourierService {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
         if (courier.getStatus() != CourierStatus.OFF_DUTY) {
-            throw new InvalidStatusException("Courier " + id + " is already on shift");
+            throw new InvalidStatusException("Courier: " + id + " is already on shift");
         }
         courier.setStatus(CourierStatus.AVAILABLE);
         repository.save(courier);
@@ -62,7 +62,7 @@ public class CourierServiceImpl implements CourierService {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
         if (courier.getStatus() != CourierStatus.AVAILABLE) {
-            throw new InvalidStatusException("Courier " + id +
+            throw new InvalidStatusException("Courier: " + id +
                     " cannot end shift in status " + courier.getStatus());
         }
         courier.setStatus(CourierStatus.OFF_DUTY);
