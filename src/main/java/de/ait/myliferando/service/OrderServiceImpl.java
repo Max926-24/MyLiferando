@@ -9,6 +9,7 @@ import de.ait.myliferando.dto.mapping.OrderMapper;
 import de.ait.myliferando.dto.order.OrderCreateRequest;
 import de.ait.myliferando.dto.order.OrderResponse;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
+import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.OrderRepository;
@@ -62,6 +63,14 @@ public class OrderServiceImpl implements OrderService {
                 -> new EntityNotFoundException(Order.class, orderId));
         Courier courier = courierRepository.findById(courierId).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, courierId));
+        if (order.getStatus() != OrderStatus.CREATED) {
+            throw new InvalidStatusException("Order " + orderId + " cannot be assigned in status: "
+                    + order.getStatus());
+        }
+        if (courier.getStatus() != CourierStatus.AVAILABLE) {
+            throw new InvalidStatusException("Courier " + courierId + " is not available, status: "
+                    + courier.getStatus());
+        }
         order.setCourier(courier);
         order.setStatus(OrderStatus.ASSIGNED);
         courier.setStatus(CourierStatus.BUSY);
@@ -75,6 +84,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse pickUp(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
+        if (order.getStatus() != OrderStatus.ASSIGNED) {
+            throw new InvalidStatusException("Order " + orderId + " cannot be picked up in status: "
+                    + order.getStatus());
+        }
         order.setStatus(OrderStatus.PICKED_UP);
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);
@@ -85,6 +98,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse deliver(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
+        if (order.getStatus() != OrderStatus.PICKED_UP) {
+            throw new InvalidStatusException("Order " + orderId + " cannot be delivered in status: "
+                    + order.getStatus());
+        }
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         Courier courier = order.getCourier();
@@ -99,6 +116,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse cancel(Long orderId) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
+        if (order.getStatus() == OrderStatus.DELIVERED ||
+                order.getStatus() == OrderStatus.CANCELLED) {
+            throw new InvalidStatusException("Order: " + orderId + " cannot be cancelled in status: "
+                    + order.getStatus());
+        }
+
         order.setStatus(OrderStatus.CANCELLED);
         Courier courier = order.getCourier();
         if (courier != null) {
