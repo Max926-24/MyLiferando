@@ -3,8 +3,11 @@ package de.ait.myliferando.service;
 import de.ait.myliferando.domain.Courier;
 import de.ait.myliferando.domain.enums.CourierStatus;
 
+import de.ait.myliferando.domain.enums.Transport;
+import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
 import de.ait.myliferando.dto.mapping.CourierMapperImpl;
+import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
@@ -77,7 +80,6 @@ class CourierServiceImplTest {
 
         CourierResponse result = service.endShift(1L);
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
-
     }
 
     @Test
@@ -102,5 +104,35 @@ class CourierServiceImplTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
+    @Test
+    void save_whenPhoneExists_throwsException() {
 
+        CourierCreateRequest request = new CourierCreateRequest();
+        request.setPhone("+491111");
+
+        when(repository.existsByPhone("+491111")).thenReturn(true);
+
+        assertThatThrownBy(() -> service.save(request))
+                .isInstanceOf(AlreadyExistsException.class);
+
+    }
+
+    @Test
+    void save_whenPhoneIsFree_returnsResponse() {
+        String phone = "+491111";
+        CourierCreateRequest request = new CourierCreateRequest();
+        request.setName("Ivan");
+        request.setPhone(phone);
+        request.setTransport(Transport.BIKE);
+
+        when(repository.existsByPhone(phone)).thenReturn(false);
+
+        CourierResponse result = service.save(request);
+        assertThat(result.getName()).isEqualTo("Ivan");
+        assertThat(result.getPhone()).isEqualTo(phone);
+        assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
+
+
+    }
 }
+
