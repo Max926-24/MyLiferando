@@ -64,11 +64,11 @@ public class OrderServiceImpl implements OrderService {
         Courier courier = courierRepository.findById(courierId).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, courierId));
         if (order.getStatus() != OrderStatus.CREATED) {
-            throw new InvalidStatusException("Order " + orderId + " cannot be assigned in status: "
+            throw new InvalidStatusException("Order: " + orderId + " cannot be assigned in status: "
                     + order.getStatus());
         }
         if (courier.getStatus() != CourierStatus.AVAILABLE) {
-            throw new InvalidStatusException("Courier " + courierId + " is not available, status: "
+            throw new InvalidStatusException("Courier: " + courierId + " is not available, status: "
                     + courier.getStatus());
         }
         order.setCourier(courier);
@@ -85,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
         if (order.getStatus() != OrderStatus.ASSIGNED) {
-            throw new InvalidStatusException("Order " + orderId + " cannot be picked up in status: "
+            throw new InvalidStatusException("Order: " + orderId + " cannot be picked up in status: "
                     + order.getStatus());
         }
         order.setStatus(OrderStatus.PICKED_UP);
@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
         if (order.getStatus() != OrderStatus.PICKED_UP) {
-            throw new InvalidStatusException("Order " + orderId + " cannot be delivered in status: "
+            throw new InvalidStatusException("Order: " + orderId + " cannot be delivered in status: "
                     + order.getStatus());
         }
         order.setStatus(OrderStatus.DELIVERED);
