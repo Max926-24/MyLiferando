@@ -4,7 +4,7 @@
 
 Учебный проект на Spring Boot. Рассчитан на работу в России: клиенты идентифицируются по ИНН.
 
-> **Статус:** в разработке. Готовы сущности, репозитории, DTO и мапперы, дальше сервисы. REST API пока нет.
+> **Статус:** в разработке. Готовы REST API, сервисы с правилами статусов, обработка ошибок, миграции базы и тесты сервисов. Дальше авторизация.
 
 ## Стек
 
@@ -12,6 +12,7 @@
 - Spring Boot 4 (Web MVC, Data JPA, Validation)
 - MapStruct (преобразование сущностей в DTO и обратно)
 - PostgreSQL 16 в Docker
+- Flyway (миграции базы)
 - Maven (через `mvnw`, ставить Maven не нужно)
 
 ## Быстрый старт
@@ -32,7 +33,7 @@
    ```bash
    ./mvnw spring-boot:run
    ```
-   Приложение стартует на http://localhost:8080. Таблицы Hibernate создаст сам при первом запуске.
+   Приложение стартует на http://localhost:8080. Таблицы при первом запуске создаст Flyway по миграциям из `src/main/resources/db/migration`.
 4. Запустить тесты (база должна быть запущена):
    ```bash
    ./mvnw test
@@ -108,9 +109,19 @@ src/main/java/de/ait/myliferando/
 ├── domain/          сущности JPA: Client, Courier, Order
 │   └── enums/       ClientType, LegalType, CourierStatus, OrderStatus, Transport
 ├── repository/      репозитории Spring Data JPA
-└── dto/             объекты запросов и ответов API: client/, courier/, order/
-    └── mapping/     мапперы MapStruct: ClientMapper, CourierMapper, OrderMapper
+├── dto/             объекты запросов и ответов API: client/, courier/, order/
+│   └── mapping/     мапперы MapStruct: ClientMapper, CourierMapper, OrderMapper
+├── service/         бизнес-логика и правила смены статусов
+│   └── interfaces/  интерфейсы сервисов
+├── controller/      REST-контроллеры
+└── exceptions/      свои исключения и общий обработчик ошибок
+
+src/main/resources/
+├── application.yml  настройки приложения
+└── db/migration/    миграции Flyway: V1__init.sql, дальше V2__..., V3__...
 ```
+
+Схему базы меняют только новые файлы миграций. Уже применённую миграцию править нельзя.
 
 ## Планы
 
@@ -121,6 +132,6 @@ src/main/java/de/ait/myliferando/
 - [x] Сервисы с правилами смены статусов
 - [x] REST-контроллеры
 - [x] Обработка ошибок (400, 404, 409)
-- [ ] Миграции базы (Liquibase или Flyway) вместо `ddl-auto: update`
+- [x] Миграции базы (Flyway) вместо `ddl-auto: update`
 - [ ] Авторизация (JWT), роли: заведение, курьер, диспетчер
 - [x] Тесты сервисов

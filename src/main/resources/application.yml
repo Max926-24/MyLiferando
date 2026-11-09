@@ -9,7 +9,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update   # пока Hibernate сам создаёт и обновляет таблицы
+      ddl-auto: validate   # таблицы создаёт Flyway (db/migration), Hibernate только сверяет их с сущностями
     show-sql: true
     properties:
       hibernate:
