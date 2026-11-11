@@ -91,13 +91,9 @@ public class OrderServiceImpl implements OrderService {
         if (order.getStatus() != OrderStatus.ASSIGNED) {
             throw new InvalidStatusException("Order: " + orderId + " cannot be picked up in status: "
                     + order.getStatus());
-        }
-        User courierUser = order.getCourier().getUser();
-        if (courierUser == null || !courierUser.getUsername().equals(username)) {
-            throw new AccessDeniedException(
-                    "Order " + orderId + " is assigned to another courier");
-        }
 
+        }
+        checkCourierOwnsOrder(order, username);
         order.setStatus(OrderStatus.PICKED_UP);
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);
@@ -112,11 +108,7 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidStatusException("Order: " + orderId + " cannot be delivered in status: "
                     + order.getStatus());
         }
-        User courierUser = order.getCourier().getUser();
-        if (courierUser == null || !courierUser.getUsername().equals(username)) {
-            throw new AccessDeniedException("Order " + orderId + " is assigned to another courier");
-        }
-
+        checkCourierOwnsOrder(order, username);
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         Courier courier = order.getCourier();
@@ -145,5 +137,15 @@ public class OrderServiceImpl implements OrderService {
         }
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);
+    }
+
+    private void checkCourierOwnsOrder(Order order, String username) {
+        User courierUser = order.getCourier().getUser();
+        if (courierUser == null || !courierUser.getUsername().equals(username)) {
+            throw new AccessDeniedException(
+                    "Order " + order.getId() + " is assigned to another courier");
+        }
+
+
     }
 }
