@@ -18,6 +18,9 @@ public class CourierCreateRequest {
     @NotNull
     private Transport transport;
 
+    @NotBlank
+    private String username;
+
     public CourierCreateRequest() {
     }
 
@@ -43,5 +46,13 @@ public class CourierCreateRequest {
 
     public void setTransport(Transport transport) {
         this.transport = transport;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

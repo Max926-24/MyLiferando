@@ -1,6 +1,7 @@
 package de.ait.myliferando.service;
 
 import de.ait.myliferando.domain.Courier;
+import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
@@ -9,6 +10,7 @@ import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
+import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +21,12 @@ public class CourierServiceImpl implements CourierService {
 
     private final CourierRepository repository;
     private final CourierMapper mapper;
+    private final UserRepository userRepository;
 
-    public CourierServiceImpl(CourierRepository repository, CourierMapper mapper) {
+    public CourierServiceImpl(CourierRepository repository, CourierMapper mapper, UserRepository userRepository) {
         this.repository = repository;
         this.mapper = mapper;
+        this.userRepository = userRepository;
     }
 
 
@@ -33,6 +37,10 @@ public class CourierServiceImpl implements CourierService {
                     " already exists");
         }
         Courier entity = mapper.mapDtoToEntity(request);
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Username "
+                        + request.getUsername() + " not found"));
+        entity.setUser(user);
         repository.save(entity);
         return mapper.mapEntityToDto(entity);
     }

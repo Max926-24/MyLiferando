@@ -8,7 +8,7 @@ import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.UserService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +19,12 @@ public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
     private final PasswordEncoder encoder;
 
+
     public UserServiceImpl(UserRepository repository, UserMapper mapper, PasswordEncoder encoder) {
         this.repository = repository;
         this.mapper = mapper;
         this.encoder = encoder;
+
     }
 
     @Override

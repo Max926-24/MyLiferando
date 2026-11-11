@@ -38,6 +38,10 @@ public class Courier {
     @NotNull
     private Transport transport;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public Courier() {
     }
 
@@ -79,6 +83,14 @@ public class Courier {
 
     public void setTransport(Transport transport) {
         this.transport = transport;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

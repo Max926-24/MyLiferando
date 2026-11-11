@@ -13,5 +13,9 @@ public interface CourierMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "user",ignore = true)
     Courier mapDtoToEntity(CourierCreateRequest dto);
+
+
+
 }
