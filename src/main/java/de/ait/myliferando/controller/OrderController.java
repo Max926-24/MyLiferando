@@ -44,8 +44,8 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/deliver")
-    public OrderResponse deliver(@PathVariable Long id) {
-        return service.deliver(id);
+    public OrderResponse deliver(@PathVariable Long id, Principal principal) {
+        return service.deliver(id, principal.getName());
     }
 
     @PatchMapping("/{id}/cancel")

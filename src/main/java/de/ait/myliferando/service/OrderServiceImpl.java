@@ -105,13 +105,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse deliver(Long orderId) {
+    public OrderResponse deliver(Long orderId, String username) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
         if (order.getStatus() != OrderStatus.PICKED_UP) {
             throw new InvalidStatusException("Order: " + orderId + " cannot be delivered in status: "
                     + order.getStatus());
         }
+        User courierUser = order.getCourier().getUser();
+        if (courierUser == null || !courierUser.getUsername().equals(username)) {
+            throw new AccessDeniedException("Order " + orderId + " is assigned to another courier");
+        }
+
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         Courier courier = order.getCourier();

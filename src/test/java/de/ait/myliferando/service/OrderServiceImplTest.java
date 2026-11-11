@@ -117,7 +117,7 @@ class OrderServiceImplTest {
         order.setCourier(courier);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        OrderResponse result = service.pickUp(1L,"courier1");
+        OrderResponse result = service.pickUp(1L, "courier1");
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PICKED_UP);
         verify(orderRepository).save(order);
 
@@ -147,8 +147,13 @@ class OrderServiceImplTest {
         order.setStatus(OrderStatus.PICKED_UP);
         order.setCourier(courier);
 
+        User user = new User();
+        user.setUsername("courier1");
+        courier.setUser(user);
+
+
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        OrderResponse result = service.deliver(1L);
+        OrderResponse result = service.deliver(1L, "courier1");
         assertThat(result.getStatus()).isEqualTo(OrderStatus.DELIVERED);
         assertThat(result.getDeliveredAt()).isNotNull();
         assertThat(courier.getStatus()).isEqualTo(CourierStatus.AVAILABLE);
@@ -163,7 +168,7 @@ class OrderServiceImplTest {
         order.setStatus(OrderStatus.ASSIGNED);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        assertThatThrownBy(() -> service.deliver(1L))
+        assertThatThrownBy(() -> service.deliver(1L, "courier1"))
                 .isInstanceOf(InvalidStatusException.class);
 
         verify(orderRepository, never()).save(any());
