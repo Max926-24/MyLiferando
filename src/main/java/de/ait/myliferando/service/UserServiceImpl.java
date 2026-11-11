@@ -5,8 +5,10 @@ import de.ait.myliferando.dto.mapping.UserMapper;
 import de.ait.myliferando.dto.user.UserCreateRequest;
 import de.ait.myliferando.dto.user.UserResponse;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
+import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.UserService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,5 +38,13 @@ public class UserServiceImpl implements UserService {
         return mapper.mapEntityToDto(entity);
 
     }
+
+    @Override
+    public UserResponse getByUsername(String username) {
+        User user = repository.findByUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Username " + username + " not found"));
+        return mapper.mapEntityToDto(user);
+    }
+
 
 }

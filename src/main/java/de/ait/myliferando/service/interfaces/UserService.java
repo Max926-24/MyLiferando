@@ -6,4 +6,6 @@ import de.ait.myliferando.dto.user.UserResponse;
 public interface UserService {
 
     UserResponse register(UserCreateRequest request);
+
+    UserResponse getByUsername(String username);
 }
