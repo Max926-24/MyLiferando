@@ -14,7 +14,7 @@ public interface OrderService {
 
     OrderResponse assignCourier(Long orderId, Long courierId);
 
-    OrderResponse pickUp(Long orderId);
+    OrderResponse pickUp(Long orderId, String username);
 
     OrderResponse deliver(Long orderId);
 

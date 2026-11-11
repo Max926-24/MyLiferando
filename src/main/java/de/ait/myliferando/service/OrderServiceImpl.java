@@ -3,6 +3,7 @@ package de.ait.myliferando.service;
 import de.ait.myliferando.domain.Client;
 import de.ait.myliferando.domain.Courier;
 import de.ait.myliferando.domain.Order;
+import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.OrderStatus;
 import de.ait.myliferando.dto.mapping.OrderMapper;
@@ -14,8 +15,10 @@ import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.OrderRepository;
 import de.ait.myliferando.service.interfaces.OrderService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -79,15 +82,22 @@ public class OrderServiceImpl implements OrderService {
         return mapper.mapEntityToDto(order);
     }
 
+
     @Override
     @Transactional
-    public OrderResponse pickUp(Long orderId) {
+    public OrderResponse pickUp(Long orderId, String username) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
         if (order.getStatus() != OrderStatus.ASSIGNED) {
             throw new InvalidStatusException("Order: " + orderId + " cannot be picked up in status: "
                     + order.getStatus());
         }
+        User courierUser = order.getCourier().getUser();
+        if (courierUser == null || !courierUser.getUsername().equals(username)) {
+            throw new AccessDeniedException(
+                    "Order " + orderId + " is assigned to another courier");
+        }
+
         order.setStatus(OrderStatus.PICKED_UP);
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);

@@ -3,6 +3,7 @@ package de.ait.myliferando.service;
 import de.ait.myliferando.domain.Client;
 import de.ait.myliferando.domain.Courier;
 import de.ait.myliferando.domain.Order;
+import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.OrderStatus;
 import de.ait.myliferando.dto.mapping.OrderMapperImpl;
@@ -109,9 +110,14 @@ class OrderServiceImplTest {
         Order order = new Order();
         order.setId(1L);
         order.setStatus(OrderStatus.ASSIGNED);
+        User user = new User();
+        user.setUsername("courier1");
+        Courier courier = new Courier();
+        courier.setUser(user);
+        order.setCourier(courier);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        OrderResponse result = service.pickUp(1L);
+        OrderResponse result = service.pickUp(1L,"courier1");
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PICKED_UP);
         verify(orderRepository).save(order);
 
@@ -124,7 +130,7 @@ class OrderServiceImplTest {
         order.setStatus(OrderStatus.CREATED);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        assertThatThrownBy(() -> service.pickUp(1L))
+        assertThatThrownBy(() -> service.pickUp(1L, "courier1"))
                 .isInstanceOf(InvalidStatusException.class);
         verify(orderRepository, never()).save(any());
 

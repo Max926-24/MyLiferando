@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -38,8 +39,8 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/pick-up")
-    public OrderResponse pickUp(@PathVariable Long id) {
-        return service.pickUp(id);
+    public OrderResponse pickUp(@PathVariable Long id, Principal principal) {
+        return service.pickUp(id, principal.getName());
     }
 
     @PatchMapping("/{id}/deliver")
