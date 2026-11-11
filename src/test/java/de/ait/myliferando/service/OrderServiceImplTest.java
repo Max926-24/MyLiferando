@@ -17,6 +17,7 @@ import de.ait.myliferando.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Optional;
 
@@ -120,6 +121,24 @@ class OrderServiceImplTest {
         OrderResponse result = service.pickUp(1L, "courier1");
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PICKED_UP);
         verify(orderRepository).save(order);
+
+    }
+
+    @Test
+    void pickUp_whenAnotherCourier_throwsException() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.ASSIGNED);
+        User user = new User();
+        user.setUsername("courier1");
+        Courier courier = new Courier();
+        courier.setUser(user);
+        order.setCourier(courier);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        assertThatThrownBy(() -> service.pickUp(1L, "courier2"))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(orderRepository, never()).save(any());
 
     }
 
