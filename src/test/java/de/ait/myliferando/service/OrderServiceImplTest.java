@@ -181,6 +181,26 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void deliver_whenAnotherCourier_throwsException() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.PICKED_UP);
+        User user = new User();
+        user.setUsername("courier1");
+        Courier courier = new Courier();
+        courier.setUser(user);
+        order.setCourier(courier);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        assertThatThrownBy(() -> service.deliver(1L, "courier2"))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(orderRepository, never()).save(any());
+        verify(courierRepository, never()).save(any());
+
+
+    }
+
+    @Test
     void deliver_whenNotPickedUp_throwsException() {
         Order order = new Order();
         order.setId(1L);
