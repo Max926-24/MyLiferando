@@ -12,7 +12,7 @@ public interface CourierService {
 
     List<CourierResponse> findAll();
 
-    CourierResponse startShift(Long id);
+    CourierResponse startShift(Long id, String username);
 
-    CourierResponse endShift(Long id);
+    CourierResponse endShift(Long id, String username);
 }

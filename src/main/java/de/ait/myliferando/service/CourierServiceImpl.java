@@ -12,6 +12,7 @@ import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,27 +55,37 @@ public class CourierServiceImpl implements CourierService {
     }
 
     @Override
-    public CourierResponse startShift(Long id) {
+    public CourierResponse startShift(Long id, String username) {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
         if (courier.getStatus() != CourierStatus.OFF_DUTY) {
             throw new InvalidStatusException("Courier: " + id + " is already on shift");
         }
+        checkIsOwnAccount(courier, username);
         courier.setStatus(CourierStatus.AVAILABLE);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
     }
 
     @Override
-    public CourierResponse endShift(Long id) {
+    public CourierResponse endShift(Long id, String username) {
         Courier courier = repository.findById(id).orElseThrow(()
                 -> new EntityNotFoundException(Courier.class, id));
         if (courier.getStatus() != CourierStatus.AVAILABLE) {
             throw new InvalidStatusException("Courier: " + id +
                     " cannot end shift in status " + courier.getStatus());
         }
+        checkIsOwnAccount(courier, username);
         courier.setStatus(CourierStatus.OFF_DUTY);
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
+    }
+
+    private void checkIsOwnAccount(Courier courier, String username) {
+        User courierUser = courier.getUser();
+        if (courierUser == null || !courierUser.getUsername().equals(username)) {
+            throw new AccessDeniedException(
+                    "Courier " + courier.getId() + " is not your account");
+        }
     }
 }

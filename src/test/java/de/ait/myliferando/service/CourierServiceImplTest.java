@@ -18,6 +18,7 @@ import de.ait.myliferando.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.security.access.AccessDeniedException;
 
 
 import java.util.Optional;
@@ -48,14 +49,36 @@ class CourierServiceImplTest {
         Courier courier = new Courier();
         courier.setId(1L);
         courier.setStatus(CourierStatus.OFF_DUTY);
+        User user = new User();
+        user.setUsername("courier1");
+        courier.setUser(user);
 
         when(repository.findById(1L)).thenReturn(Optional.of(courier));
 
-        CourierResponse result = service.startShift(1L);
+        CourierResponse result = service.startShift(1L, "courier1");
         assertThat(result.getStatus()).isEqualTo(CourierStatus.AVAILABLE);
         verify(repository).save(courier);
 
     }
+
+    @Test
+    void startShift_whenAnotherCourier_throwsException() {
+        Courier courier = new Courier();
+        courier.setId(1L);
+        courier.setStatus(CourierStatus.OFF_DUTY);
+        User user = new User();
+        user.setUsername("courier1");
+        courier.setUser(user);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(courier));
+
+        assertThatThrownBy(() -> service.startShift(1L, "courier2"))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+    }
+
+
+
 
     @Test
     void startShift_whenAlreadyAvailable_throwsException() {
@@ -66,7 +89,7 @@ class CourierServiceImplTest {
 
         when(repository.findById(1L)).thenReturn(Optional.of(courier));
 
-        assertThatThrownBy(() -> service.startShift(1L))
+        assertThatThrownBy(() -> service.startShift(1L, "courier1"))
                 .isInstanceOf(InvalidStatusException.class);
         verify(repository, never()).save(any());
     }
@@ -76,7 +99,7 @@ class CourierServiceImplTest {
 
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.startShift(1L))
+        assertThatThrownBy(() -> service.startShift(1L, "courier1"))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -86,12 +109,32 @@ class CourierServiceImplTest {
         Courier courier = new Courier();
         courier.setId(1L);
         courier.setStatus(CourierStatus.AVAILABLE);
+        User user = new User();
+        user.setUsername("courier1");
+        courier.setUser(user);
 
         when(repository.findById(1L)).thenReturn(Optional.of(courier));
 
-        CourierResponse result = service.endShift(1L);
+        CourierResponse result = service.endShift(1L, "courier1");
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
         verify(repository).save(courier);
+    }
+    @Test
+    void endShift_whenAnotherCourier_throwsException(){
+        Courier courier = new Courier();
+        courier.setId(1L);
+        courier.setStatus(CourierStatus.AVAILABLE);
+        User user = new User();
+        user.setUsername("courier1");
+        courier.setUser(user);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(courier));
+
+        assertThatThrownBy(() -> service.endShift(1L, "courier2"))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(repository, never()).save(any());
+
+
     }
 
     @Test
@@ -103,7 +146,7 @@ class CourierServiceImplTest {
 
         when(repository.findById(1L)).thenReturn(Optional.of(courier));
 
-        assertThatThrownBy(() -> service.endShift(1L))
+        assertThatThrownBy(() -> service.endShift(1L, "courier1"))
                 .isInstanceOf(InvalidStatusException.class);
         verify(repository, never()).save(any());
     }
@@ -113,7 +156,7 @@ class CourierServiceImplTest {
 
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.endShift(1L))
+        assertThatThrownBy(() -> service.endShift(1L, "courier1"))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -151,5 +194,7 @@ class CourierServiceImplTest {
         verify(repository).save(any());
 
     }
+
+
 }
 

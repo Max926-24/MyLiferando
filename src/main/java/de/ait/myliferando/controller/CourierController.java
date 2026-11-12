@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -31,12 +32,12 @@ public class CourierController {
     }
 
     @PatchMapping("/{id}/start-shift")
-    public CourierResponse startShift(@PathVariable Long id) {
-        return service.startShift(id);
+    public CourierResponse startShift(@PathVariable Long id, Principal principal) {
+        return service.startShift(id, principal.getName());
     }
 
     @PatchMapping("/{id}/end-shift")
-    public CourierResponse endShift(@PathVariable Long id) {
-        return service.endShift(id);
+    public CourierResponse endShift(@PathVariable Long id, Principal principal) {
+        return service.endShift(id, principal.getName());
     }
 }
