@@ -1,11 +1,11 @@
 package de.ait.myliferando.controller;
 
+import de.ait.myliferando.dto.user.UserCreateRequest;
 import de.ait.myliferando.dto.user.UserResponse;
 import de.ait.myliferando.service.interfaces.UserService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -22,6 +22,13 @@ public class UserController {
     @GetMapping("/me")
     public UserResponse me(Principal principal) {
         return service.getByUsername(principal.getName());
+
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody UserCreateRequest request) {
+        return service.register(request);
 
     }
 }

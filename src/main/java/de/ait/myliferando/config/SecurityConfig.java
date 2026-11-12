@@ -40,6 +40,8 @@ public class SecurityConfig {
                 .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/orders")
                 .hasAnyRole("CLIENT", "DISPATCHER")
+                .requestMatchers(HttpMethod.POST,"/users")
+                .hasRole("DISPATCHER")
                 .anyRequest()
                 .authenticated());
         http.httpBasic(Customizer.withDefaults());
