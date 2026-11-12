@@ -51,6 +51,10 @@ public class Client {
     @Pattern(regexp = "\\d{10}|\\d{12}")
     private String inn;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     public Client() {
     }
 
@@ -116,6 +120,14 @@ public class Client {
 
     public void setInn(String inn) {
         this.inn = inn;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override

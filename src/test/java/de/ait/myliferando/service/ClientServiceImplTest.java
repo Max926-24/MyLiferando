@@ -1,13 +1,17 @@
 package de.ait.myliferando.service;
 
+import de.ait.myliferando.domain.User;
 import de.ait.myliferando.dto.client.ClientCreateRequest;
 import de.ait.myliferando.dto.client.ClientResponse;
 import de.ait.myliferando.dto.mapping.ClientMapperImpl;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.repository.ClientRepository;
+import de.ait.myliferando.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,11 +24,13 @@ class ClientServiceImplTest {
 
     private ClientRepository repository;
     private ClientServiceImpl service;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(ClientRepository.class);
-        service = new ClientServiceImpl(repository, new ClientMapperImpl());
+        userRepository = Mockito.mock(UserRepository.class);
+        service = new ClientServiceImpl(repository, new ClientMapperImpl(), userRepository);
     }
 
     @Test
@@ -60,6 +66,7 @@ class ClientServiceImplTest {
 
     @Test
     void save_whenEmailAndInnAreFree_returnsResponse() {
+        String username = "client9";
         String name = "Ivan";
         String email = "max.musterman@gmail.com";
         String inn = "1234567890";
@@ -68,9 +75,11 @@ class ClientServiceImplTest {
         request.setName(name);
         request.setEmail(email);
         request.setInn(inn);
+        request.setUsername(username);
 
         when(repository.existsByEmail(email)).thenReturn(false);
         when(repository.existsByInn(inn)).thenReturn(false);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(new User()));
         ClientResponse result = service.save(request);
         assertThat(result.getName()).isEqualTo(name);
         assertThat(result.getEmail()).isEqualTo(email);

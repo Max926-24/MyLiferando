@@ -32,6 +32,9 @@ public class ClientCreateRequest {
     @Pattern(regexp = "\\d{10}|\\d{12}")
     private String inn;
 
+    @NotBlank
+    private String username ;
+
 
     public ClientCreateRequest() {
     }
@@ -92,7 +95,13 @@ public class ClientCreateRequest {
         this.inn = inn;
     }
 
+    public String getUsername() {
+        return username;
+    }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
 
 
