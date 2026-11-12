@@ -1,6 +1,7 @@
 package de.ait.myliferando.controller;
 
-import de.ait.myliferando.dto.user.UserCreateRequest;
+import de.ait.myliferando.dto.user.RegisterRequest;
+
 import de.ait.myliferando.dto.user.UserResponse;
 import de.ait.myliferando.service.interfaces.UserService;
 import jakarta.validation.Valid;
@@ -20,8 +21,8 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse register(@Valid @RequestBody UserCreateRequest request) {
-        return service.register(request);
+    public UserResponse register(@Valid @RequestBody RegisterRequest registerRequest) {
+        return service.registerClient(registerRequest);
     }
 
 }

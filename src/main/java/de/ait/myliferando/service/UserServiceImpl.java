@@ -1,7 +1,9 @@
 package de.ait.myliferando.service;
 
 import de.ait.myliferando.domain.User;
+import de.ait.myliferando.domain.enums.Role;
 import de.ait.myliferando.dto.mapping.UserMapper;
+import de.ait.myliferando.dto.user.RegisterRequest;
 import de.ait.myliferando.dto.user.UserCreateRequest;
 import de.ait.myliferando.dto.user.UserResponse;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
@@ -46,6 +48,15 @@ public class UserServiceImpl implements UserService {
         User user = repository.findByUsername(username).orElseThrow(()
                 -> new EntityNotFoundException("Username " + username + " not found"));
         return mapper.mapEntityToDto(user);
+    }
+
+    @Override
+    public UserResponse registerClient(RegisterRequest registerRequest) {
+        UserCreateRequest createRequest = new UserCreateRequest();
+        createRequest.setUsername(registerRequest.getUsername());
+        createRequest.setPassword(registerRequest.getPassword());
+        createRequest.setRole(Role.CLIENT);
+        return register(createRequest);
     }
 
 
