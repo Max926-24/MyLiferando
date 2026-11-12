@@ -6,6 +6,7 @@ import de.ait.myliferando.domain.Order;
 import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.OrderStatus;
+import de.ait.myliferando.domain.enums.Role;
 import de.ait.myliferando.dto.mapping.OrderMapperImpl;
 import de.ait.myliferando.dto.order.OrderCreateRequest;
 import de.ait.myliferando.dto.order.OrderResponse;
@@ -14,6 +15,7 @@ import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.OrderRepository;
+import de.ait.myliferando.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -30,14 +32,16 @@ class OrderServiceImplTest {
     private CourierRepository courierRepository;
     private OrderRepository orderRepository;
     private OrderServiceImpl service;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
         clientRepository = Mockito.mock(ClientRepository.class);
         courierRepository = Mockito.mock(CourierRepository.class);
         orderRepository = Mockito.mock(OrderRepository.class);
+        userRepository = Mockito.mock(UserRepository.class);
         service = new OrderServiceImpl(clientRepository, courierRepository,
-                orderRepository, new OrderMapperImpl());
+                orderRepository, new OrderMapperImpl(), userRepository);
 
     }
 
@@ -157,6 +161,7 @@ class OrderServiceImplTest {
 
     @Test
     void deliver_whenPickedUp_becomesDelivered() {
+        String username = "courier1";
         Courier courier = new Courier();
         courier.setId(2L);
         courier.setStatus(CourierStatus.BUSY);
@@ -167,12 +172,12 @@ class OrderServiceImplTest {
         order.setCourier(courier);
 
         User user = new User();
-        user.setUsername("courier1");
+        user.setUsername(username);
         courier.setUser(user);
 
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
-        OrderResponse result = service.deliver(1L, "courier1");
+        OrderResponse result = service.deliver(1L, username);
         assertThat(result.getStatus()).isEqualTo(OrderStatus.DELIVERED);
         assertThat(result.getDeliveredAt()).isNotNull();
         assertThat(courier.getStatus()).isEqualTo(CourierStatus.AVAILABLE);
@@ -217,6 +222,10 @@ class OrderServiceImplTest {
 
     @Test
     void cancel_whenHasCourier_releasesCourier() {
+        String username = "dispatcher1";
+        User dispatcher = new User();
+        dispatcher.setRole(Role.DISPATCHER);
+
         Courier courier = new Courier();
         courier.setId(2L);
         courier.setStatus(CourierStatus.BUSY);
@@ -227,8 +236,9 @@ class OrderServiceImplTest {
         order.setCourier(courier);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(dispatcher));
 
-        OrderResponse result = service.cancel(1L);
+        OrderResponse result = service.cancel(1L, username);
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
         assertThat(courier.getStatus()).isEqualTo(CourierStatus.AVAILABLE);
 
@@ -239,18 +249,75 @@ class OrderServiceImplTest {
 
     @Test
     void cancel_whenNoCourier_cancelsOnlyOrder() {
+        String username = "dispatcher1";
+        User dispatcher = new User();
+        dispatcher.setRole(Role.DISPATCHER);
+
         Order order = new Order();
         order.setId(1L);
         order.setStatus(OrderStatus.CREATED);
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(dispatcher));
 
-        OrderResponse result = service.cancel(1L);
+        OrderResponse result = service.cancel(1L, username);
         assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
 
         verify(orderRepository).save(order);
         verify(courierRepository, never()).save(any());
 
+    }
+
+    @Test
+    void cancel_whenOwnClient_cancelsOrder() {
+        String username = "client1";
+        User owner = new User();
+        owner.setUsername(username);
+        owner.setRole(Role.CLIENT);
+
+        Client client = new Client();
+        client.setUser(owner);
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.CREATED);
+        order.setClient(client);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(owner));
+
+        OrderResponse result = service.cancel(1L, username);
+        assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+
+        verify(orderRepository).save(order);
+        verify(courierRepository, never()).save(any());
+
+    }
+
+    @Test
+    void cancel_whenAnotherClient_throwsException() {
+        String ownerUsername = "client1";
+        String callerUsername = "client2";
+        User owner = new User();
+        owner.setUsername(ownerUsername);
+        owner.setRole(Role.CLIENT);
+
+        Client client = new Client();
+        client.setUser(owner);
+        Order order = new Order();
+        order.setId(1L);
+        order.setStatus(OrderStatus.CREATED);
+        order.setClient(client);
+
+        User caller = new User();
+        caller.setUsername(callerUsername);
+        caller.setRole(Role.CLIENT);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(callerUsername)).thenReturn(Optional.of(caller));
+
+        assertThatThrownBy(() -> service.cancel(1L, callerUsername))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(orderRepository, never()).save(any());
     }
 
     @Test
@@ -261,7 +328,7 @@ class OrderServiceImplTest {
 
         when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
 
-        assertThatThrownBy(() -> service.cancel(1L))
+        assertThatThrownBy(() -> service.cancel(1L, "dispatcher1"))
                 .isInstanceOf(InvalidStatusException.class);
         verify(orderRepository, never()).save(any());
         verify(courierRepository, never()).save(any());

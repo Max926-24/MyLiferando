@@ -49,8 +49,8 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public OrderResponse cancel(@PathVariable Long id) {
-        return service.cancel(id);
+    public OrderResponse cancel(@PathVariable Long id,Principal principal) {
+        return service.cancel(id, principal.getName());
     }
 
 }

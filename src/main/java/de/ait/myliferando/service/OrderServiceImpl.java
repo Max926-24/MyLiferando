@@ -6,6 +6,7 @@ import de.ait.myliferando.domain.Order;
 import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.OrderStatus;
+import de.ait.myliferando.domain.enums.Role;
 import de.ait.myliferando.dto.mapping.OrderMapper;
 import de.ait.myliferando.dto.order.OrderCreateRequest;
 import de.ait.myliferando.dto.order.OrderResponse;
@@ -14,6 +15,7 @@ import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.CourierRepository;
 import de.ait.myliferando.repository.OrderRepository;
+import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.OrderService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -30,15 +32,17 @@ public class OrderServiceImpl implements OrderService {
     private final CourierRepository courierRepository;
     private final OrderRepository orderRepository;
     private final OrderMapper mapper;
+    private final UserRepository userRepository;
 
     public OrderServiceImpl(ClientRepository clientRepository,
                             CourierRepository courierRepository,
                             OrderRepository orderRepository,
-                            OrderMapper mapper) {
+                            OrderMapper mapper, UserRepository userRepository) {
         this.clientRepository = clientRepository;
         this.courierRepository = courierRepository;
         this.orderRepository = orderRepository;
         this.mapper = mapper;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -120,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse cancel(Long orderId) {
+    public OrderResponse cancel(Long orderId, String username) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException(Order.class, orderId));
         if (order.getStatus() == OrderStatus.DELIVERED ||
@@ -128,6 +132,7 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidStatusException("Order: " + orderId + " cannot be cancelled in status: "
                     + order.getStatus());
         }
+        checkClientOwnsOrder(order, username);
 
         order.setStatus(OrderStatus.CANCELLED);
         Courier courier = order.getCourier();
@@ -145,7 +150,17 @@ public class OrderServiceImpl implements OrderService {
             throw new AccessDeniedException(
                     "Order " + order.getId() + " is assigned to another courier");
         }
+    }
 
-
+    private void checkClientOwnsOrder(Order order, String username) {
+        User caller = userRepository.findByUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Username " + username + " not found"));
+        if (caller.getRole().equals(Role.CLIENT)) {
+            User clientUser = order.getClient().getUser();
+            if (clientUser == null || !clientUser.getUsername().equals(username)) {
+                throw new AccessDeniedException("Order " + order.getId()
+                        + " belongs to another client");
+            }
+        }
     }
 }
