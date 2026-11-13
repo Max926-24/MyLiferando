@@ -58,8 +58,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> findAll() {
-        return orderRepository.findAll()
+    public List<OrderResponse> findAll(String username) {
+        User caller = userRepository.findByUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Username " + username + " not found"));
+        List<Order> orders;
+        if (caller.getRole().equals(Role.DISPATCHER)) {
+            orders = orderRepository.findAll();
+        } else if (caller.getRole().equals(Role.CLIENT)) {
+            orders = orderRepository.findByClientUserUsername(username);
+        } else {
+            orders = orderRepository.findByCourierUserUsername(username);
+        }
+        return orders
                 .stream()
                 .map(mapper::mapEntityToDto)
                 .toList();

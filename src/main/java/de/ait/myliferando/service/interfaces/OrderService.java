@@ -10,7 +10,7 @@ public interface OrderService {
 
     OrderResponse create(OrderCreateRequest request, String username);
 
-    List<OrderResponse> findAll();
+    List<OrderResponse> findAll(String username);
 
     OrderResponse assignCourier(Long orderId, Long courierId);
 

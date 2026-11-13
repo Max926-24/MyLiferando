@@ -28,8 +28,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderResponse> findAll() {
-        return service.findAll();
+    public List<OrderResponse> findAll(Principal principal) {
+        return service.findAll(principal.getName());
     }
 
     @PatchMapping("/{orderId}/assign/{courierId}")
