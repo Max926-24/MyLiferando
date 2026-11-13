@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -402,5 +403,52 @@ class OrderServiceImplTest {
         verify(orderRepository, never()).save(any());
     }
 
+    @Test
+    void findAll_whenDispatcher_returnsAllOrders() {
+        String username = "dispatcher1";
+        User dispatcher = new User();
+        dispatcher.setRole(Role.DISPATCHER);
+        Order order = new Order();
+        order.setId(1L);
 
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(dispatcher));
+        when(orderRepository.findAll()).thenReturn(List.of(order));
+
+        List<OrderResponse> result = service.findAll(username);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+
+    }
+
+    @Test
+    void findAll_whenClient_returnsOwnOrders() {
+        String username = "client1";
+        User caller = new User();
+        caller.setRole(Role.CLIENT);
+        Order order = new Order();
+        order.setId(1L);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(caller));
+        when(orderRepository.findByClientUserUsername(username)).thenReturn(List.of(order));
+
+        List<OrderResponse> result = service.findAll(username);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+
+    }
+
+    @Test
+    void findAll_whenCourier_returnsAssignedOrders() {
+        String username = "courier1";
+        User caller = new User();
+        caller.setRole(Role.COURIER);
+        Order order = new Order();
+        order.setId(1L);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(caller));
+        when(orderRepository.findByCourierUserUsername(username)).thenReturn(List.of(order));
+
+        List<OrderResponse> result = service.findAll(username);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(1L);
+
+    }
 }
