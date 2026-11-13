@@ -8,5 +8,8 @@ import java.util.List;
 public interface ClientService {
 
     ClientResponse save(ClientCreateRequest request);
+
     List<ClientResponse> findAll();
+
+    ClientResponse getByUsername(String username);
 }

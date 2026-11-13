@@ -53,4 +53,11 @@ public class ClientServiceImpl implements ClientService {
                 .map(mapper::mapEntityToDto)
                 .toList();
     }
+
+    @Override
+    public ClientResponse getByUsername(String username) {
+        Client client = repository.findByUserUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Client for user " + username + " not found"));
+        return mapper.mapEntityToDto(client);
+    }
 }

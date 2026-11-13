@@ -1,10 +1,12 @@
 package de.ait.myliferando.service;
 
+import de.ait.myliferando.domain.Client;
 import de.ait.myliferando.domain.User;
 import de.ait.myliferando.dto.client.ClientCreateRequest;
 import de.ait.myliferando.dto.client.ClientResponse;
 import de.ait.myliferando.dto.mapping.ClientMapperImpl;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
+import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.repository.ClientRepository;
 import de.ait.myliferando.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +63,6 @@ class ClientServiceImplTest {
         assertThatThrownBy(() -> service.save(request))
                 .isInstanceOf(AlreadyExistsException.class);
         verify(repository, never()).save(any());
-
     }
 
     @Test
@@ -86,7 +87,29 @@ class ClientServiceImplTest {
         assertThat(result.getInn()).isEqualTo(inn);
 
         verify(repository).save(any());
+    }
 
+    @Test
+    void getByUsername_whenClientExists_returnResponse() {
+        String username = "client2";
+        String clientName = "Sushi Tokyo";
+        Long clientId = 2L;
+        Client client = new Client();
+        client.setId(clientId);
+        client.setName(clientName);
 
+        when(repository.findByUserUsername(username)).thenReturn(Optional.of(client));
+        ClientResponse result = service.getByUsername(username);
+        assertThat(result.getName()).isEqualTo(clientName);
+        assertThat(result.getId()).isEqualTo(clientId);
+    }
+
+    @Test
+    void getByUsername_whenClientNotFound_throwsException() {
+        String username = "client1";
+
+        when(repository.findByUserUsername(username)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.getByUsername(username))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

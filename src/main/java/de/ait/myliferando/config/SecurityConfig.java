@@ -36,6 +36,8 @@ public class SecurityConfig {
                 .hasRole("COURIER")
                 .requestMatchers(HttpMethod.GET, "/couriers/me")
                 .hasRole("COURIER")
+                .requestMatchers(HttpMethod.GET, "/clients/me")
+                .hasRole("CLIENT")
                 .requestMatchers(HttpMethod.POST, "/couriers")
                 .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/clients")

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -28,6 +29,12 @@ public class ClientController {
     @GetMapping
     public List<ClientResponse> findAll() {
         return service.findAll();
+    }
+
+    @GetMapping("/me")
+    public ClientResponse me(Principal principal) {
+        return service.getByUsername(principal.getName());
+
     }
 
 }
