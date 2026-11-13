@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface OrderService {
 
-    OrderResponse create(OrderCreateRequest request);
+    OrderResponse create(OrderCreateRequest request, String username);
 
     List<OrderResponse> findAll();
 
@@ -16,7 +16,7 @@ public interface OrderService {
 
     OrderResponse pickUp(Long orderId, String username);
 
-    OrderResponse deliver(Long orderId,String username);
+    OrderResponse deliver(Long orderId, String username);
 
-    OrderResponse cancel(Long orderId,String username);
+    OrderResponse cancel(Long orderId, String username);
 }

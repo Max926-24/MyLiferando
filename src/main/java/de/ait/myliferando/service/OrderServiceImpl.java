@@ -46,9 +46,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse create(OrderCreateRequest request) {
+    public OrderResponse create(OrderCreateRequest request, String username) {
         Client client = clientRepository.findById(request.getClientId()).orElseThrow(() ->
                 new EntityNotFoundException(Client.class, request.getClientId()));
+
+        checkIsOwnClient(client, username);
         Order entity = mapper.mapDtoToEntity(request);
         entity.setClient(client);
         orderRepository.save(entity);
@@ -132,7 +134,7 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidStatusException("Order: " + orderId + " cannot be cancelled in status: "
                     + order.getStatus());
         }
-        checkClientOwnsOrder(order, username);
+        checkIsOwnClient(order.getClient(), username);
 
         order.setStatus(OrderStatus.CANCELLED);
         Courier courier = order.getCourier();
@@ -152,14 +154,14 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void checkClientOwnsOrder(Order order, String username) {
+    private void checkIsOwnClient(Client client, String username) {
         User caller = userRepository.findByUsername(username).orElseThrow(()
                 -> new EntityNotFoundException("Username " + username + " not found"));
         if (caller.getRole().equals(Role.CLIENT)) {
-            User clientUser = order.getClient().getUser();
+            User clientUser = client.getUser();
             if (clientUser == null || !clientUser.getUsername().equals(username)) {
-                throw new AccessDeniedException("Order " + order.getId()
-                        + " belongs to another client");
+                throw new AccessDeniedException("Client " + client.getId()
+                        + " is not your account");
             }
         }
     }

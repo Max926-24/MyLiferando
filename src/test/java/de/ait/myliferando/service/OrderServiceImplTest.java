@@ -341,7 +341,7 @@ class OrderServiceImplTest {
 
         when(clientRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create(createRequest))
+        assertThatThrownBy(() -> service.create(createRequest, "dispatcher1"))
                 .isInstanceOf(EntityNotFoundException.class);
 
         verify(orderRepository, never()).save(any());
@@ -349,7 +349,10 @@ class OrderServiceImplTest {
 
     @Test
     void create_whenClientExists_createsOrder() {
+        String username = "dispatcher1";
         String address = "MozartStr,1";
+        User user = new User();
+        user.setRole(Role.DISPATCHER);
 
         Client client = new Client();
         client.setId(1L);
@@ -358,10 +361,10 @@ class OrderServiceImplTest {
         OrderCreateRequest createRequest = new OrderCreateRequest();
         createRequest.setClientId(1L);
         createRequest.setDeliveryAddress(address);
-
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
 
-        OrderResponse result = service.create(createRequest);
+        OrderResponse result = service.create(createRequest, username);
 
         assertThat(result.getClientId()).isEqualTo(1L);
         assertThat(result.getClientName()).isEqualTo("Pizza");
@@ -370,7 +373,33 @@ class OrderServiceImplTest {
 
         verify(orderRepository).save(any());
 
+    }
 
+    @Test
+    void create_whenAnotherClient_throwsException() {
+        String ownerUsername = "client1";
+        String callerUsername = "client2";
+        User owner = new User();
+        owner.setUsername(ownerUsername);
+        owner.setRole(Role.CLIENT);
+
+        Client client = new Client();
+        client.setUser(owner);
+        client.setId(1L);
+        OrderCreateRequest createRequest = new OrderCreateRequest();
+        createRequest.setClientId(1L);
+
+
+        User caller = new User();
+        caller.setUsername(callerUsername);
+        caller.setRole(Role.CLIENT);
+
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(userRepository.findByUsername(callerUsername)).thenReturn(Optional.of(caller));
+
+        assertThatThrownBy(() -> service.create(createRequest, callerUsername))
+                .isInstanceOf(AccessDeniedException.class);
+        verify(orderRepository, never()).save(any());
     }
 
 

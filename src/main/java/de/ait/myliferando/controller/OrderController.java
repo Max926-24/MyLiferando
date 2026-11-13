@@ -23,8 +23,8 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderResponse create(@Valid @RequestBody OrderCreateRequest request) {
-        return service.create(request);
+    public OrderResponse create(@Valid @RequestBody OrderCreateRequest request, Principal principal) {
+        return service.create(request, principal.getName());
     }
 
     @GetMapping
@@ -49,7 +49,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public OrderResponse cancel(@PathVariable Long id,Principal principal) {
+    public OrderResponse cancel(@PathVariable Long id, Principal principal) {
         return service.cancel(id, principal.getName());
     }
 
