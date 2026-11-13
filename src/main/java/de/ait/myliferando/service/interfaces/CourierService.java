@@ -15,4 +15,6 @@ public interface CourierService {
     CourierResponse startShift(Long id, String username);
 
     CourierResponse endShift(Long id, String username);
+
+    CourierResponse getByUsername(String username);
 }

@@ -81,6 +81,13 @@ public class CourierServiceImpl implements CourierService {
         return mapper.mapEntityToDto(courier);
     }
 
+    @Override
+    public CourierResponse getByUsername(String username) {
+        Courier courier = repository.findByUserUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Courier for user " + username + " not found"));
+        return mapper.mapEntityToDto(courier);
+    }
+
     private void checkIsOwnAccount(Courier courier, String username) {
         User courierUser = courier.getUser();
         if (courierUser == null || !courierUser.getUsername().equals(username)) {

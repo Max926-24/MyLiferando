@@ -34,13 +34,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH,
                         "/couriers/*/start-shift", "/couriers/*/end-shift")
                 .hasRole("COURIER")
+                .requestMatchers(HttpMethod.GET, "/couriers/me")
+                .hasRole("COURIER")
                 .requestMatchers(HttpMethod.POST, "/couriers")
                 .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/clients")
                 .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/orders")
                 .hasAnyRole("CLIENT", "DISPATCHER")
-                .requestMatchers(HttpMethod.POST,"/users")
+                .requestMatchers(HttpMethod.POST, "/users")
                 .hasRole("DISPATCHER")
                 .anyRequest()
                 .authenticated());

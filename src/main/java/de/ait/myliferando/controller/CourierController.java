@@ -31,6 +31,11 @@ public class CourierController {
         return service.findAll();
     }
 
+    @GetMapping("/me")
+    public CourierResponse me(Principal principal) {
+        return service.getByUsername(principal.getName());
+    }
+
     @PatchMapping("/{id}/start-shift")
     public CourierResponse startShift(@PathVariable Long id, Principal principal) {
         return service.startShift(id, principal.getName());

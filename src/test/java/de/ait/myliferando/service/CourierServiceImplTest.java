@@ -78,8 +78,6 @@ class CourierServiceImplTest {
     }
 
 
-
-
     @Test
     void startShift_whenAlreadyAvailable_throwsException() {
 
@@ -119,8 +117,9 @@ class CourierServiceImplTest {
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
         verify(repository).save(courier);
     }
+
     @Test
-    void endShift_whenAnotherCourier_throwsException(){
+    void endShift_whenAnotherCourier_throwsException() {
         Courier courier = new Courier();
         courier.setId(1L);
         courier.setStatus(CourierStatus.AVAILABLE);
@@ -192,9 +191,32 @@ class CourierServiceImplTest {
         assertThat(result.getPhone()).isEqualTo(phone);
         assertThat(result.getStatus()).isEqualTo(CourierStatus.OFF_DUTY);
         verify(repository).save(any());
+    }
+
+    @Test
+    void getByUsername_whenCourierExists_returnsResponse() {
+        String username = "courier1";
+
+        Courier courier = new Courier();
+        courier.setId(2L);
+        courier.setName("Petr");
+
+        when(repository.findByUserUsername(username)).thenReturn(Optional.of(courier));
+        CourierResponse result = service.getByUsername(username);
+        assertThat(result.getName()).isEqualTo("Petr");
+        assertThat(result.getId()).isEqualTo(2L);
 
     }
 
+    @Test
+    void getByUsername_whenCourierNotFound_throwsException() {
+        String username = "courier2";
+
+        when(repository.findByUserUsername(username)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getByUsername(username))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 
 }
 
