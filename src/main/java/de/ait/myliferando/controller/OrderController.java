@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
@@ -30,6 +31,12 @@ public class OrderController {
     @GetMapping
     public List<OrderResponse> findAll(Principal principal) {
         return service.findAll(principal.getName());
+    }
+
+    @GetMapping("/{id}")
+    public OrderResponse getById(@PathVariable Long id, Principal principal) {
+        return service.getById(id, principal.getName());
+
     }
 
     @PatchMapping("/{orderId}/assign/{courierId}")

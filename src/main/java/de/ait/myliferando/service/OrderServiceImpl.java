@@ -76,6 +76,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderResponse getById(Long orderId, String username) {
+        Order order = orderRepository.findById(orderId).orElseThrow(()
+                -> new EntityNotFoundException(Order.class, orderId));
+        User caller = userRepository.findByUsername(username).orElseThrow(()
+                -> new EntityNotFoundException("Username " + username + " not found"));
+        if (caller.getRole().equals(Role.CLIENT)) {
+            checkIsOwnClient(order.getClient(), username);
+        } else if (caller.getRole().equals(Role.COURIER)) {
+            if (order.getCourier() == null) {
+                throw new AccessDeniedException("Order " + orderId
+                        + " is not assigned to you");
+            }
+            checkCourierOwnsOrder(order, username);
+        }
+
+        return mapper.mapEntityToDto(order);
+    }
+
+
+    @Override
     @Transactional
     public OrderResponse assignCourier(Long orderId, Long courierId) {
         Order order = orderRepository.findById(orderId).orElseThrow(()
@@ -155,6 +175,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         return mapper.mapEntityToDto(order);
     }
+
 
     private void checkCourierOwnsOrder(Order order, String username) {
         User courierUser = order.getCourier().getUser();

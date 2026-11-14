@@ -449,6 +449,129 @@ class OrderServiceImplTest {
         List<OrderResponse> result = service.findAll(username);
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getById_whenOrderNotFound_throwsException() {
+        String username = "client1";
+        when(orderRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.getById(1L, username))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void getById_whenDispatcher_returnsOrder() {
+        String username = "dispatcher1";
+        User dispatcher = new User();
+        dispatcher.setRole(Role.DISPATCHER);
+        Order order = new Order();
+        order.setId(1L);
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(dispatcher));
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        OrderResponse result = service.getById(1L, username);
+        assertThat(result.getId()).isEqualTo(1L);
 
     }
+
+    @Test
+    void getById_whenOwnClient_returnOrder() {
+        String username = "client1";
+        User owner = new User();
+        owner.setUsername(username);
+        owner.setRole(Role.CLIENT);
+        Client client = new Client();
+        client.setUser(owner);
+        Order order = new Order();
+        order.setId(1L);
+        order.setClient(client);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(owner));
+
+        OrderResponse result = service.getById(1L, username);
+        assertThat(result.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getById_whenAnotherClient_throwsException() {
+        String ownerUserName = "client1";
+        String callerUsername = "client2";
+        User owner = new User();
+        owner.setUsername(ownerUserName);
+        owner.setRole(Role.CLIENT);
+        Client client = new Client();
+        client.setUser(owner);
+        Order order = new Order();
+        order.setClient(client);
+        User caller = new User();
+        caller.setUsername(callerUsername);
+        caller.setRole(Role.CLIENT);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(callerUsername)).thenReturn(Optional.of(caller));
+        assertThatThrownBy(() -> service.getById(1L, callerUsername))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void getById_whenAssignedCourier_returnOrder() {
+        String username = "courier1";
+        User courierUser = new User();
+        courierUser.setUsername(username);
+        courierUser.setRole(Role.COURIER);
+        Courier courier = new Courier();
+        courier.setUser(courierUser);
+        Order order = new Order();
+        order.setId(1L);
+        order.setCourier(courier);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(courierUser));
+
+        OrderResponse result = service.getById(1L, username);
+        assertThat(result.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getById_whenOrderHasNoCourier_throwsException() {
+        String username = "courier1";
+        User caller = new User();
+        caller.setUsername(username);
+        caller.setRole(Role.COURIER);
+        Order order = new Order();
+        order.setId(1L);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(caller));
+
+        assertThatThrownBy(() -> service.getById(1L, username))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    @Test
+    void getById_whenAnotherCourier_throwsException() {
+        String ownerUsername = "courier1";
+        String callerUsername = "courier2";
+        User owner = new User();
+        owner.setUsername(ownerUsername);
+        owner.setRole(Role.COURIER);
+        Courier courier = new Courier();
+        courier.setUser(owner);
+        Order order = new Order();
+        order.setId(1L);
+        order.setCourier(courier);
+        User caller = new User();
+        caller.setUsername(callerUsername);
+        caller.setRole(Role.COURIER);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(userRepository.findByUsername(callerUsername)).thenReturn(Optional.of(caller));
+
+        assertThatThrownBy(() -> service.getById(1L, callerUsername))
+                .isInstanceOf(AccessDeniedException.class);
+
+    }
+
 }

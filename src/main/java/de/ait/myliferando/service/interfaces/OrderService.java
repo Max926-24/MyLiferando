@@ -19,4 +19,6 @@ public interface OrderService {
     OrderResponse deliver(Long orderId, String username);
 
     OrderResponse cancel(Long orderId, String username);
+
+    OrderResponse getById(Long orderId, String username);
 }
