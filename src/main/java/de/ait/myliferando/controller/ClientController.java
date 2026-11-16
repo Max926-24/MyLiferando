@@ -34,7 +34,11 @@ public class ClientController {
     @GetMapping("/me")
     public ClientResponse me(Principal principal) {
         return service.getByUsername(principal.getName());
+    }
 
+    @GetMapping("/{id}")
+    public ClientResponse getById(@PathVariable Long id) {
+        return service.getById(id);
     }
 
 }

@@ -218,5 +218,29 @@ class CourierServiceImplTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
+    @Test
+    void getById_whenCourierExists_returnsResponse() {
+        Long courierId = 2L;
+        String name = "Petr";
+        Courier courier = new Courier();
+        courier.setId(courierId);
+        courier.setName(name);
+
+        when(repository.findById(courierId)).thenReturn(Optional.of(courier));
+
+        CourierResponse result = service.getById(courierId);
+        assertThat(result.getId()).isEqualTo(courierId);
+        assertThat(result.getName()).isEqualTo(name);
+
+    }
+
+    @Test
+    void getById_whenCourierNotFound_throwsException() {
+        when(repository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getById(2L))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
 }
 

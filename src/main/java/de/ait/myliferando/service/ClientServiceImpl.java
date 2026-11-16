@@ -60,4 +60,11 @@ public class ClientServiceImpl implements ClientService {
                 -> new EntityNotFoundException("Client for user " + username + " not found"));
         return mapper.mapEntityToDto(client);
     }
+
+    @Override
+    public ClientResponse getById(Long id) {
+        Client client = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Client.class, id));
+        return mapper.mapEntityToDto(client);
+    }
 }

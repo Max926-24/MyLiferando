@@ -112,4 +112,29 @@ class ClientServiceImplTest {
         assertThatThrownBy(() -> service.getByUsername(username))
                 .isInstanceOf(EntityNotFoundException.class);
     }
+
+    @Test
+    void getById_whenClientExists_returnsResponse() {
+        Long clientId = 2L;
+        String name = "Sushi Tokyo";
+        Client client = new Client();
+        client.setId(clientId);
+        client.setName(name);
+
+        when(repository.findById(clientId)).thenReturn(Optional.of(client));
+
+        ClientResponse result = service.getById(clientId);
+        assertThat(result.getId()).isEqualTo(clientId);
+        assertThat(result.getName()).isEqualTo(name);
+
+    }
+
+    @Test
+    void getById_whenClientNotFound_throwsException() {
+        Long clientId = 2L;
+
+        when(repository.findById(clientId)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.getById(clientId))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 }

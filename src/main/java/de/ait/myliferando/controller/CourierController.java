@@ -1,5 +1,6 @@
 package de.ait.myliferando.controller;
 
+
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
 import de.ait.myliferando.service.interfaces.CourierService;
@@ -36,6 +37,12 @@ public class CourierController {
         return service.getByUsername(principal.getName());
     }
 
+    @GetMapping("/{id}")
+    public CourierResponse getById(@PathVariable Long id) {
+        return service.getById(id);
+
+    }
+
     @PatchMapping("/{id}/start-shift")
     public CourierResponse startShift(@PathVariable Long id, Principal principal) {
         return service.startShift(id, principal.getName());
@@ -45,4 +52,5 @@ public class CourierController {
     public CourierResponse endShift(@PathVariable Long id, Principal principal) {
         return service.endShift(id, principal.getName());
     }
+
 }

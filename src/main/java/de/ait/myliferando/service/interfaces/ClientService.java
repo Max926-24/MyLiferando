@@ -12,4 +12,6 @@ public interface ClientService {
     List<ClientResponse> findAll();
 
     ClientResponse getByUsername(String username);
+
+    ClientResponse getById(Long id);
 }
