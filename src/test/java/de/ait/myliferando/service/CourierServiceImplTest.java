@@ -15,6 +15,7 @@ import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
+import de.ait.myliferando.repository.OrderRepository;
 import de.ait.myliferando.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,13 +36,15 @@ class CourierServiceImplTest {
     private CourierRepository repository;
     private CourierServiceImpl service;
     private UserRepository userRepository;
+    private OrderRepository orderRepository;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(CourierRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
-        service = new CourierServiceImpl(repository, new CourierMapperImpl()
-                , userRepository);
+        orderRepository = Mockito.mock(OrderRepository.class);
+        service = new CourierServiceImpl(repository, new CourierMapperImpl(),
+                userRepository, orderRepository);
     }
 
     @Test
@@ -319,9 +322,45 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.update(2L, updateRequest))
                 .isInstanceOf(EntityNotFoundException.class);
-
         verify(repository, never()).save(any());
     }
 
+    @Test
+    void delete_whenNoOrders_deletesCourier() {
+        Long courierId = 2L;
+        Courier courier = new Courier();
+        courier.setId(courierId);
+
+        when(repository.findById(courierId)).thenReturn(Optional.of(courier));
+        when(orderRepository.existsByCourierId(courierId)).thenReturn(false);
+        service.delete(courierId);
+        verify(repository).delete(courier);
+    }
+
+    @Test
+    void delete_whenCourierHasOrders_throwsException() {
+        Long courierId = 2L;
+        Courier courier = new Courier();
+        courier.setId(courierId);
+
+        when(repository.findById(courierId)).thenReturn(Optional.of(courier));
+        when(orderRepository.existsByCourierId(courierId)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete(courierId))
+                .isInstanceOf(InvalidStatusException.class);
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void delete_whenCourierNotFound_throwsException() {
+        Long courierId = 2L;
+
+        when(repository.findById(courierId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(courierId))
+                .isInstanceOf(EntityNotFoundException.class);
+        verify(repository, never()).delete(any());
+        verify(orderRepository, never()).existsByCourierId(any());
+    }
 }
 

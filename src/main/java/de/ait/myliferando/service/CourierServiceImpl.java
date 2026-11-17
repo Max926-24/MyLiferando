@@ -11,6 +11,7 @@ import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
 import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.CourierRepository;
+import de.ait.myliferando.repository.OrderRepository;
 import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.CourierService;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,11 +26,16 @@ public class CourierServiceImpl implements CourierService {
     private final CourierRepository repository;
     private final CourierMapper mapper;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
-    public CourierServiceImpl(CourierRepository repository, CourierMapper mapper, UserRepository userRepository) {
+    public CourierServiceImpl(CourierRepository repository,
+                              CourierMapper mapper,
+                              UserRepository userRepository,
+                              OrderRepository orderRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
 
@@ -112,6 +118,17 @@ public class CourierServiceImpl implements CourierService {
         repository.save(courier);
         return mapper.mapEntityToDto(courier);
 
+    }
+
+    @Override
+    public void delete(Long id) {
+        Courier courier = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Courier.class, id));
+        if (orderRepository.existsByCourierId(id)) {
+            throw new InvalidStatusException("Courier with id "
+                    + id + " has orders and cannot be deleted");
+        }
+        repository.delete(courier);
     }
 
     private void checkIsOwnAccount(Courier courier, String username) {

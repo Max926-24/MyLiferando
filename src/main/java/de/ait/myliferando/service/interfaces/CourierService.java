@@ -22,4 +22,6 @@ public interface CourierService {
     CourierResponse getById(Long id);
 
     CourierResponse update(Long id, CourierUpdateRequest updateRequest);
+
+    void delete(Long id);
 }

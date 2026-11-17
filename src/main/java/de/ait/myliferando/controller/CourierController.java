@@ -47,6 +47,12 @@ public class CourierController {
     @PutMapping("/{id}")
     public CourierResponse update(@PathVariable Long id, @Valid @RequestBody CourierUpdateRequest updateRequest) {
         return service.update(id, updateRequest);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
 
     }
 
