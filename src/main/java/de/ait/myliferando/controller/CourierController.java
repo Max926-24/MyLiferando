@@ -3,6 +3,7 @@ package de.ait.myliferando.controller;
 
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
+import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.service.interfaces.CourierService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,12 @@ public class CourierController {
     @GetMapping("/{id}")
     public CourierResponse getById(@PathVariable Long id) {
         return service.getById(id);
+
+    }
+
+    @PutMapping("/{id}")
+    public CourierResponse update(@PathVariable Long id, @Valid @RequestBody CourierUpdateRequest updateRequest) {
+        return service.update(id, updateRequest);
 
     }
 

@@ -5,6 +5,7 @@ import de.ait.myliferando.domain.User;
 import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
+import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.dto.mapping.CourierMapper;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CourierServiceImpl implements CourierService {
@@ -93,6 +95,23 @@ public class CourierServiceImpl implements CourierService {
         Courier courier = repository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException(Courier.class, id));
         return mapper.mapEntityToDto(courier);
+    }
+
+    @Override
+    public CourierResponse update(Long id, CourierUpdateRequest updateRequest) {
+        Courier courier = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Courier.class, id));
+        Optional<Courier> existing = repository.findByPhone(updateRequest.getPhone());
+        if (existing.isPresent() && (!existing.get().getId().equals(id))) {
+            throw new AlreadyExistsException("Courier with phone number " + updateRequest.getPhone() +
+                    " already exists");
+        }
+        courier.setName(updateRequest.getName());
+        courier.setPhone(updateRequest.getPhone());
+        courier.setTransport(updateRequest.getTransport());
+        repository.save(courier);
+        return mapper.mapEntityToDto(courier);
+
     }
 
     private void checkIsOwnAccount(Courier courier, String username) {

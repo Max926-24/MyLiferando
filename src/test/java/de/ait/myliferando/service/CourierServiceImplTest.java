@@ -8,6 +8,7 @@ import de.ait.myliferando.domain.enums.CourierStatus;
 import de.ait.myliferando.domain.enums.Transport;
 import de.ait.myliferando.dto.courier.CourierCreateRequest;
 import de.ait.myliferando.dto.courier.CourierResponse;
+import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.dto.mapping.CourierMapperImpl;
 
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
@@ -240,6 +241,86 @@ class CourierServiceImplTest {
 
         assertThatThrownBy(() -> service.getById(2L))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void update_whenPhoneIsFree_updatesCourier() {
+        Courier courier = new Courier();
+        courier.setId(2L);
+        courier.setName("Petr");
+        courier.setPhone("+4915170109877");
+        courier.setTransport(Transport.CAR);
+
+        CourierUpdateRequest updateRequest = new CourierUpdateRequest();
+        updateRequest.setName("Petr Ivanov");
+        updateRequest.setPhone("+492123499898");
+        updateRequest.setTransport(Transport.FOOT);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(courier));
+        when(repository.findByPhone("+492123499898")).thenReturn(Optional.empty());
+        CourierResponse result = service.update(2L, updateRequest);
+        assertThat(result.getName()).isEqualTo("Petr Ivanov");
+        assertThat(result.getPhone()).isEqualTo("+492123499898");
+        assertThat(result.getTransport()).isEqualTo(Transport.FOOT);
+        verify(repository).save(courier);
+    }
+
+    @Test
+    void update_whenPhoneBelongsToAnotherCourier_throwsException() {
+        Courier courier = new Courier();
+        courier.setId(2L);
+        Courier other = new Courier();
+        other.setId(1L);
+        other.setPhone("+491514395866");
+        CourierUpdateRequest updateRequest = new CourierUpdateRequest();
+        updateRequest.setName("Jora");
+        updateRequest.setPhone("+491514395866");
+        updateRequest.setTransport(Transport.BIKE);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(courier));
+        when(repository.findByPhone("+491514395866")).thenReturn(Optional.of(other));
+        assertThatThrownBy(() -> service.update(2L, updateRequest))
+                .isInstanceOf(AlreadyExistsException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void update_whenPhoneIsOwn_updatesCourier() {
+        String phoneNumber = "+4915170109877";
+        Courier courier = new Courier();
+        courier.setId(2L);
+        courier.setPhone(phoneNumber);
+        CourierUpdateRequest updateRequest = new CourierUpdateRequest();
+        updateRequest.setName("Mark");
+        updateRequest.setPhone(phoneNumber);
+        updateRequest.setTransport(Transport.CAR);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(courier));
+        when(repository.findByPhone(phoneNumber)).thenReturn(Optional.of(courier));
+
+        CourierResponse result = service.update(2L, updateRequest);
+        assertThat(result.getName()).isEqualTo("Mark");
+        assertThat(result.getPhone()).isEqualTo(phoneNumber);
+        assertThat(result.getTransport()).isEqualTo(Transport.CAR);
+
+        verify(repository).save(courier);
+
+    }
+
+    @Test
+    void update_whenCourierNotFound_throwsException() {
+
+        CourierUpdateRequest updateRequest = new CourierUpdateRequest();
+        updateRequest.setName("Mark");
+        updateRequest.setPhone("+4915170109877");
+        updateRequest.setTransport(Transport.BIKE);
+
+        when(repository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(2L, updateRequest))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(repository, never()).save(any());
     }
 
 }
