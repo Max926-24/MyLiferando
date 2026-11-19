@@ -13,8 +13,11 @@ import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.dto.mapping.ClientMapperImpl;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
+import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.ClientRepository;
+import de.ait.myliferando.repository.OrderRepository;
 import de.ait.myliferando.repository.UserRepository;
+import jdk.dynalink.linker.support.CompositeTypeBasedGuardingDynamicLinker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,12 +36,15 @@ class ClientServiceImplTest {
     private ClientRepository repository;
     private ClientServiceImpl service;
     private UserRepository userRepository;
+    private OrderRepository orderRepository;
 
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(ClientRepository.class);
         userRepository = Mockito.mock(UserRepository.class);
-        service = new ClientServiceImpl(repository, new ClientMapperImpl(), userRepository);
+        orderRepository = Mockito.mock(OrderRepository.class);
+        service = new ClientServiceImpl(repository, new ClientMapperImpl(),
+                userRepository, orderRepository);
     }
 
     @Test
@@ -317,4 +323,41 @@ class ClientServiceImplTest {
         verify(repository).save(client);
         verify(repository, never()).findByInn(any());
     }
+
+    @Test
+    void delete_whenNoOrders_deletesClient() {
+        Long clientId = 2L;
+        Client client = new Client();
+        client.setId(clientId);
+
+        when(repository.findById(clientId)).thenReturn(Optional.of(client));
+        when(orderRepository.existsByClientId(clientId)).thenReturn(false);
+        service.delete(clientId);
+        verify(repository).delete(client);
+    }
+
+    @Test
+    void delete_whenClientHasOrders_throwsException() {
+        Long clientId = 2L;
+        Client client = new Client();
+        client.setId(clientId);
+
+        when(repository.findById(clientId)).thenReturn(Optional.of(client));
+        when(orderRepository.existsByClientId(clientId)).thenReturn(true);
+        assertThatThrownBy(() -> service.delete(clientId))
+                .isInstanceOf(InvalidStatusException.class);
+        verify(repository, never()).delete(any());
+    }
+
+    @Test
+    void delete_whenClientNotFound_throwsException() {
+
+        when(repository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(2L))
+                .isInstanceOf(EntityNotFoundException.class);
+        verify(repository, never()).delete(any());
+        verify(orderRepository, never()).existsByClientId(any());
+    }
+
 }

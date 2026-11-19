@@ -8,7 +8,9 @@ import de.ait.myliferando.dto.client.ClientUpdateRequest;
 import de.ait.myliferando.dto.mapping.ClientMapper;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
+import de.ait.myliferando.exceptions.types.InvalidStatusException;
 import de.ait.myliferando.repository.ClientRepository;
+import de.ait.myliferando.repository.OrderRepository;
 import de.ait.myliferando.repository.UserRepository;
 import de.ait.myliferando.service.interfaces.ClientService;
 import org.springframework.stereotype.Service;
@@ -22,13 +24,16 @@ public class ClientServiceImpl implements ClientService {
     private final ClientRepository repository;
     private final ClientMapper mapper;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     public ClientServiceImpl(ClientRepository repository,
                              ClientMapper mapper,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             OrderRepository orderRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -90,19 +95,30 @@ public class ClientServiceImpl implements ClientService {
                         + " already exists");
             }
         }
-            client.setName(updateRequest.getName());
-            client.setAddress(updateRequest.getAddress());
-            client.setEmail(updateRequest.getEmail());
-            client.setPhone(updateRequest.getPhone());
-            client.setClientType(updateRequest.getClientType());
-            client.setLegalType(updateRequest.getLegalType());
-            client.setInn(updateRequest.getInn());
+        client.setName(updateRequest.getName());
+        client.setAddress(updateRequest.getAddress());
+        client.setEmail(updateRequest.getEmail());
+        client.setPhone(updateRequest.getPhone());
+        client.setClientType(updateRequest.getClientType());
+        client.setLegalType(updateRequest.getLegalType());
+        client.setInn(updateRequest.getInn());
 
-            repository.save(client);
-            return mapper.mapEntityToDto(client);
-        }
-
+        repository.save(client);
+        return mapper.mapEntityToDto(client);
     }
+
+    @Override
+    public void delete(Long id) {
+        Client client = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Client.class, id));
+        if (orderRepository.existsByClientId(id)) {
+            throw new InvalidStatusException("Client with id " + id +
+                    " has orders and cannot be deleted");
+        }
+        repository.delete(client);
+    }
+
+}
 
 
 

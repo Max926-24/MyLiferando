@@ -22,4 +22,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByCourierUserUsername(String username);
 
     boolean existsByCourierId(Long courierId);
+
+    boolean existsByClientId(Long clientId);
 }
