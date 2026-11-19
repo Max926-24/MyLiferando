@@ -4,6 +4,7 @@ import de.ait.myliferando.domain.Client;
 import de.ait.myliferando.domain.User;
 import de.ait.myliferando.dto.client.ClientCreateRequest;
 import de.ait.myliferando.dto.client.ClientResponse;
+import de.ait.myliferando.dto.client.ClientUpdateRequest;
 import de.ait.myliferando.dto.mapping.ClientMapper;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
@@ -13,6 +14,7 @@ import de.ait.myliferando.service.interfaces.ClientService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClientServiceImpl implements ClientService {
@@ -21,7 +23,9 @@ public class ClientServiceImpl implements ClientService {
     private final ClientMapper mapper;
     private final UserRepository userRepository;
 
-    public ClientServiceImpl(ClientRepository repository, ClientMapper mapper, UserRepository userRepository) {
+    public ClientServiceImpl(ClientRepository repository,
+                             ClientMapper mapper,
+                             UserRepository userRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.userRepository = userRepository;
@@ -67,4 +71,48 @@ public class ClientServiceImpl implements ClientService {
                 -> new EntityNotFoundException(Client.class, id));
         return mapper.mapEntityToDto(client);
     }
-}
+
+    @Override
+    public ClientResponse update(Long id, ClientUpdateRequest updateRequest) {
+        Client client = repository.findById(id).orElseThrow(()
+                -> new EntityNotFoundException(Client.class, id));
+
+        Optional<Client> existing = repository.findByEmail(updateRequest.getEmail());
+        if (existing.isPresent() && (!existing.get().getId().equals(id))) {
+            throw new AlreadyExistsException("Client with email " + updateRequest.getEmail()
+                    + " already exists");
+        }
+        if (updateRequest.getInn() != null) {
+
+            Optional<Client> existingInn = repository.findByInn(updateRequest.getInn());
+            if (existingInn.isPresent() && (!existingInn.get().getId().equals(id))) {
+                throw new AlreadyExistsException("Client with INN " + updateRequest.getInn()
+                        + " already exists");
+            }
+        }
+            client.setName(updateRequest.getName());
+            client.setAddress(updateRequest.getAddress());
+            client.setEmail(updateRequest.getEmail());
+            client.setPhone(updateRequest.getPhone());
+            client.setClientType(updateRequest.getClientType());
+            client.setLegalType(updateRequest.getLegalType());
+            client.setInn(updateRequest.getInn());
+
+            repository.save(client);
+            return mapper.mapEntityToDto(client);
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+

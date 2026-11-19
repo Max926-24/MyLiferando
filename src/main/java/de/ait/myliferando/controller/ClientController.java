@@ -2,6 +2,9 @@ package de.ait.myliferando.controller;
 
 import de.ait.myliferando.dto.client.ClientCreateRequest;
 import de.ait.myliferando.dto.client.ClientResponse;
+import de.ait.myliferando.dto.client.ClientUpdateRequest;
+import de.ait.myliferando.dto.courier.CourierResponse;
+import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.service.interfaces.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -41,4 +44,8 @@ public class ClientController {
         return service.getById(id);
     }
 
+    @PutMapping("/{id}")
+    public ClientResponse update(@PathVariable Long id, @Valid @RequestBody ClientUpdateRequest updateRequest) {
+        return service.update(id, updateRequest);
+    }
 }

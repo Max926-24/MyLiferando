@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/clients")
                 .hasRole("DISPATCHER")
+                .requestMatchers(HttpMethod.PUT, "/clients/*")
+                .hasRole("DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/orders")
                 .hasAnyRole("CLIENT", "DISPATCHER")
                 .requestMatchers(HttpMethod.POST, "/users")

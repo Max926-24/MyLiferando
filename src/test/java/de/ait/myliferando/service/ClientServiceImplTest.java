@@ -1,9 +1,15 @@
 package de.ait.myliferando.service;
 
 import de.ait.myliferando.domain.Client;
+import de.ait.myliferando.domain.Courier;
 import de.ait.myliferando.domain.User;
+import de.ait.myliferando.domain.enums.ClientType;
+import de.ait.myliferando.domain.enums.LegalType;
+import de.ait.myliferando.domain.enums.Transport;
 import de.ait.myliferando.dto.client.ClientCreateRequest;
 import de.ait.myliferando.dto.client.ClientResponse;
+import de.ait.myliferando.dto.client.ClientUpdateRequest;
+import de.ait.myliferando.dto.courier.CourierUpdateRequest;
 import de.ait.myliferando.dto.mapping.ClientMapperImpl;
 import de.ait.myliferando.exceptions.types.AlreadyExistsException;
 import de.ait.myliferando.exceptions.types.EntityNotFoundException;
@@ -136,5 +142,179 @@ class ClientServiceImplTest {
         when(repository.findById(clientId)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> service.getById(clientId))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void update_whenEmailAndInnFree_updatesClient() {
+        String newEmail = "tokyo.sushi@gmail.com";
+        String newInn = "0987654321";
+
+        Client client = new Client();
+        client.setId(2L);
+        client.setName("Pizza Pat");
+        client.setEmail("max.musterman@gmail.com");
+        client.setInn("1234567890");
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("Tokyo Sushi");
+        updateRequest.setAddress("Lenina,10");
+        updateRequest.setEmail(newEmail);
+        updateRequest.setPhone("+4915170186917");
+        updateRequest.setClientType(ClientType.RESTAURANT);
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+        updateRequest.setInn(newInn);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(client));
+        when(repository.findByEmail(newEmail))
+                .thenReturn(Optional.empty());
+        when(repository.findByInn(newInn)).thenReturn(Optional.empty());
+
+        ClientResponse result = service.update(2L, updateRequest);
+        assertThat(result.getId()).isEqualTo(2L);
+        assertThat(result.getName()).isEqualTo("Tokyo Sushi");
+        assertThat(result.getAddress()).isEqualTo("Lenina,10");
+        assertThat(result.getEmail()).isEqualTo(newEmail);
+        assertThat(result.getPhone()).isEqualTo("+4915170186917");
+        assertThat(result.getInn()).isEqualTo(newInn);
+
+        verify(repository).save(client);
+    }
+
+    @Test
+    void update_whenEmailAndInnAreOwn_updatesClient() {
+        String ownEmail = "max.musterman@gmail.com";
+        String ownInn = "1234567890";
+
+        Client client = new Client();
+        client.setId(2L);
+        client.setEmail(ownEmail);
+        client.setInn(ownInn);
+        client.setName("Pizza Pat");
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("Tokyo Sushi");
+        updateRequest.setAddress("Lenina,10");
+        updateRequest.setEmail(ownEmail);
+        updateRequest.setPhone("+4915170186917");
+        updateRequest.setClientType(ClientType.RESTAURANT);
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+        updateRequest.setInn(ownInn);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(client));
+        when(repository.findByEmail(ownEmail)).thenReturn(Optional.of(client));
+        when(repository.findByInn(ownInn)).thenReturn(Optional.of(client));
+
+        ClientResponse result = service.update(2L, updateRequest);
+
+        assertThat(result.getEmail()).isEqualTo(ownEmail);
+        assertThat(result.getInn()).isEqualTo(ownInn);
+        assertThat(result.getName()).isEqualTo("Tokyo Sushi");
+
+        verify(repository).save(client);
+    }
+
+    @Test
+    void update_whenEmailBelongsToAnotherClient_throwsException() {
+
+        String otherEmail = "max.musterman@gmail.com";
+        Client client = new Client();
+        client.setId(2L);
+        client.setEmail("pizzapat@gmail.com");
+
+        Client otherClient = new Client();
+        otherClient.setId(1L);
+        otherClient.setEmail(otherEmail);
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("PizzaMania");
+        updateRequest.setPhone("+491514395866");
+        updateRequest.setEmail(otherEmail);
+        updateRequest.setInn("0978654323");
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+        updateRequest.setClientType(ClientType.RESTAURANT);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(client));
+        when(repository.findByEmail(otherEmail)).thenReturn(Optional.of(otherClient));
+        assertThatThrownBy(() -> service.update(2L, updateRequest))
+                .isInstanceOf(AlreadyExistsException.class);
+        verify(repository, never()).save(any());
+        verify(repository, never()).findByInn(any());
+    }
+
+    @Test
+    void update_whenInnBelongsToAnotherClient_throwsException() {
+
+        String newEmail = "max.musterman@gmail.com";
+        String otherInn = "0987653532";
+
+        Client client = new Client();
+        client.setId(2L);
+        client.setInn("2134566780");
+        client.setEmail("maxfactor@gmail.com");
+
+        Client otherClient = new Client();
+        otherClient.setId(1L);
+        otherClient.setInn(otherInn);
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("PizzaMania");
+        updateRequest.setPhone("+491514395866");
+        updateRequest.setEmail(newEmail);
+        updateRequest.setInn(otherInn);
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+        updateRequest.setClientType(ClientType.RESTAURANT);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(client));
+        when(repository.findByEmail(newEmail)).thenReturn(Optional.empty());
+        when(repository.findByInn(otherInn)).thenReturn(Optional.of(otherClient));
+
+        assertThatThrownBy(() -> service.update(2L, updateRequest))
+                .isInstanceOf(AlreadyExistsException.class);
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void update_whenClientNotFound_throwsException() {
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("Mark");
+        updateRequest.setEmail("max.musterman@gmail.com");
+        updateRequest.setPhone("+4915170109877");
+        updateRequest.setClientType(ClientType.RESTAURANT);
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+
+        when(repository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.update(2L, updateRequest))
+                .isInstanceOf(EntityNotFoundException.class);
+        verify(repository, never()).save(any());
+        verify(repository, never()).findByEmail(any());
+        verify(repository, never()).findByInn(any());
+    }
+
+    @Test
+    void update_whenInnIsNull_doesNotCheckInn() {
+
+        String newEmail = "max.musterman@gmail.com";
+
+        Client client = new Client();
+        client.setId(2L);
+        client.setInn("1234567890");
+
+        ClientUpdateRequest updateRequest = new ClientUpdateRequest();
+        updateRequest.setName("Mark");
+        updateRequest.setEmail(newEmail);
+        updateRequest.setPhone("+4915170109877");
+        updateRequest.setClientType(ClientType.RESTAURANT);
+        updateRequest.setLegalType(LegalType.LEGAL_ENTITY);
+
+        when(repository.findById(2L)).thenReturn(Optional.of(client));
+        when(repository.findByEmail(newEmail)).thenReturn(Optional.empty());
+
+        ClientResponse result = service.update(2L, updateRequest);
+        assertThat(result.getInn()).isNull();
+
+        verify(repository).save(client);
+        verify(repository, never()).findByInn(any());
     }
 }
