@@ -89,9 +89,17 @@ docker compose down -v && docker compose up -d
 | Запрос | Кто может | Что делает |
 |---|---|---|
 | `POST /clients` | `DISPATCHER` | создать заведение и привязать к пользователю |
-| `GET /clients` | любой вошедший | список заведений |
+| `GET /clients` | `DISPATCHER` | список заведений |
+| `GET /clients/{id}` | `DISPATCHER` | одно заведение |
+| `GET /clients/me` | `CLIENT` | моё заведение |
+| `PUT /clients/{id}` | `DISPATCHER` | изменить заведение (email и ИНН не должны быть у другого) |
+| `DELETE /clients/{id}` | `DISPATCHER` | удалить заведение; `409`, если у него есть заказы |
 | `POST /couriers` | `DISPATCHER` | создать курьера и привязать к пользователю |
-| `GET /couriers` | любой вошедший | список курьеров |
+| `GET /couriers` | `DISPATCHER` | список курьеров |
+| `GET /couriers/{id}` | `DISPATCHER` | один курьер |
+| `GET /couriers/me` | `COURIER` | моя карточка курьера |
+| `PUT /couriers/{id}` | `DISPATCHER` | изменить курьера (телефон не должен быть у другого) |
+| `DELETE /couriers/{id}` | `DISPATCHER` | удалить курьера; `409`, если у него есть заказы |
 | `PATCH /couriers/{id}/start-shift` | `COURIER`, только сам | начать смену |
 | `PATCH /couriers/{id}/end-shift` | `COURIER`, только сам | закончить смену |
 
@@ -101,6 +109,7 @@ docker compose down -v && docker compose up -d
 |---|---|---|
 | `POST /orders` | `CLIENT` для своего заведения, `DISPATCHER` для любого | оформить заказ |
 | `GET /orders` | любой вошедший | диспетчер видит все заказы, заведение свои, курьер назначенные ему |
+| `GET /orders/{id}` | любой вошедший, только свой заказ | один заказ; диспетчер видит любой |
 | `PATCH /orders/{orderId}/assign/{courierId}` | `DISPATCHER` | назначить курьера |
 | `PATCH /orders/{id}/pick-up` | `COURIER`, только назначенный | забрать заказ |
 | `PATCH /orders/{id}/deliver` | `COURIER`, только назначенный | доставить заказ |
@@ -226,7 +235,7 @@ src/main/resources/
 - [x] Запросы «кто я»: `GET /couriers/me`, `GET /clients/me`
 - [x] Ограничить списки заведений и курьеров
 - [x] Запросы по одной записи: `GET /orders/{id}` и подобные
-- [ ] Изменение и удаление заведений и курьеров
+- [x] Изменение и удаление заведений и курьеров
 - [ ] Вход по токену (JWT) вместо HTTP Basic
 - [ ] CORS: разрешить запросы из браузера
 - [ ] Документация API (Swagger)
