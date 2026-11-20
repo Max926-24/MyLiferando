@@ -1,8 +1,6 @@
 package de.ait.myliferando.service.interfaces;
 
-import de.ait.myliferando.dto.user.RegisterRequest;
-import de.ait.myliferando.dto.user.UserCreateRequest;
-import de.ait.myliferando.dto.user.UserResponse;
+import de.ait.myliferando.dto.user.*;
 
 public interface UserService {
 
@@ -11,4 +9,6 @@ public interface UserService {
     UserResponse getByUsername(String username);
 
     UserResponse registerClient(RegisterRequest registerRequest);
+
+    LoginResponse login(LoginRequest request);
 }
