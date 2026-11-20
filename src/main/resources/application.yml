@@ -17,3 +17,8 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  # Учебный ключ для подписи токенов (не короче 32 символов). На настоящем сервере его хранят вне кода и в git не кладут.
+  secret: myliferando-learning-secret-key-change-me-0123456789
+  expiration-minutes: 60
